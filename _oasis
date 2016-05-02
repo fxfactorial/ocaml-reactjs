@@ -1,0 +1,26 @@
+# -*- conf -*-
+OASISFormat: 0.4
+Name:        react_js
+Version:     0.1.0
+Synopsis:    js_of_ocaml bindings for Reactjs
+Authors:     Edgar Aroutiounian <edgar.factorial@gmail.com>
+Maintainers: Edgar Aroutiounian <edgar.factorial@gmail.com>
+Homepage:    https://github.com/fxfactorial/ocaml-reactjs
+License:     BSD-3-clause
+Plugins:     META (0.4), DevFiles (0.4)
+BuildTools: ocamlbuild
+
+Description: OCaml bindings to ReactJS
+
+Library react_js
+  Path: src
+  BuildTools:ocamlbuild
+  Modules : React_js
+  install: true
+  CompiledObject: byte
+  BuildDepends: js_of_ocaml (>= 2.7), js_of_ocaml.ppx
+
+SourceRepository master
+  Type:     git
+  Location: https://github.com/fxfactorial/ocaml-reactjs.git
+  Browser:  https://github.com/fxfactorial/ocaml-reactjs
