@@ -1,0 +1,29 @@
+opam-version: "1.2"
+name: "react_js"
+version: "0.1.0"
+maintainer: "Edgar Aroutiounian <edgar.factorial@gmail.com>"
+authors: [ "Edgar Aroutiounian <edgar.factorial@gmail.com>" ]
+license: "BSD-3-clause"
+homepage: "https://github.com/fxfactorial/ocaml-reactjs"
+dev-repo: "https://github.com/fxfactorial/ocaml-reactjs.git"
+bug-reports: "https://github.com/fxfactorial/ocaml-reactjs/issues"
+build: [
+  ["oasis" "setup"]
+  ["ocaml" "setup.ml" "-configure" "--prefix" prefix]
+  ["ocaml" "setup.ml" "-build"]
+]
+install: ["ocaml" "setup.ml" "-install"]
+remove: [
+  ["ocamlfind" "remove" "react_js"]
+]
+build-test: [
+  ["oasis" "setup"]
+  ["ocaml" "setup.ml" "-configure" "--enable-tests"]
+  ["ocaml" "setup.ml" "-build"]
+  ["ocaml" "setup.ml" "-test"]
+]
+depends: [
+  "js_of_ocaml" {>= "2.7"}
+  "oasis" {build & >= "0.4"}
+  "ocamlfind" {build}
+]
