@@ -7,12 +7,12 @@ let react = Js.Unsafe.global##.React
 let version = react <!> "version" |> Js.to_string
 
 class component_spec
-    ?(get_initial_state=(None : (unit -> Js.Unsafe.any) option))
+    ?(get_initial_state :(unit -> Js.Unsafe.any) option)
     ?(get_default_props : (unit -> Js.Unsafe.any) option)
-    ?(prop_types=(None : Js.Unsafe.any option))
+    ?(prop_types : Js.Unsafe.any option)
     ?(mixins : Js.Unsafe.any Js.js_array option)
     ?(statics : Js.Unsafe.any option)
-    ?(display_name=(None  : string option))
+    ?(display_name : string option)
     ?(component_will_mount : (unit -> unit) option)
     ?(component_did_mount : (unit -> unit) option)
     ?(component_will_receive_props :
@@ -28,7 +28,8 @@ class component_spec
          prev_state:Js.Unsafe.any -> unit) option)
     ?(component_will_unmount : (unit -> unit) option)
     ~render_f:(render_f : (unit -> react_element))
-    ~class_name:string = object(self)
+    ~class_name:string
+    () = object(self)
 
   val raw_js = object%js
 

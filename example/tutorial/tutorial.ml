@@ -5,6 +5,7 @@ let comment_box =
     new component_spec
       ~render_f:(fun () -> new react_element)
       ~class_name:"commentBox"
+      ()
   in
   create_class com_spec
 
