@@ -3,7 +3,10 @@ let ( !@ ) f = Js.wrap_callback f
 let ( !! ) o = Js.Unsafe.inject o
 let m = Js.Unsafe.meth_call
 
-let react = Js.Unsafe.global##.React
+let (react, react_dom) =
+  Js.Unsafe.global##.React,
+  Js.Unsafe.global##.ReactDom
+
 let version = react <!> "version" |> Js.to_string
 
 class component_spec
@@ -38,7 +41,13 @@ class component_spec
     val propTypes = match prop_types with
         None -> Js.null | Some p -> !!p |> Js.Opt.return
 
-    end
+    method render : unit =  !! !@(fun () ->
+        (render_f ())#unsafe_raw
+      )
+
+  end
+
+  method unsafe_raw = raw_js
 
 end
 
@@ -46,10 +55,17 @@ and react_class = object
 
 end
 
-and react_element = object end
+and react_element = object
+
+  val raw_js = object%js end
+
+  method unsafe_raw = raw_js
+
+end
 
 let create_class (com_spec : component_spec) =
-  ()
+  react##createClass com_spec#unsafe_raw
+
 
 let create_element
     ?(children : react_element list option)
@@ -73,3 +89,18 @@ module DOM = struct end
 module PropTypes = struct end
 
 module Children = struct end
+
+module React_dom = struct
+
+  let render
+    ?on_update_or_render:(cb : (unit -> unit) option)
+    ~class_elem:(class_elem : react_element)
+    (elem : #Dom_html.element Js.t) =
+    match cb with
+    | None ->
+      react_dom##render class_elem#unsafe_raw elem
+    | Some f ->
+      react_dom##render
+        class_elem#unsafe_raw elem !@f
+
+end
