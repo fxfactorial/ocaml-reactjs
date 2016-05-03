@@ -104,14 +104,19 @@ module Children = struct end
 module ReactDOM = struct
 
   let render
-    ?on_update_or_render:(cb : (unit -> unit) option)
-    ~react_elem:(react_elem : react_element)
-    (elem : #Dom_html.element Js.t) =
-    match cb with
-    | None ->
-      react_dom##render react_elem#unsafe_raw elem
-    | Some f ->
-      react_dom##render react_elem#unsafe_raw elem !@f
+      ?on_update_or_render:(cb : (unit -> unit) option)
+      ~react_elem:(react_elem : react_element)
+      (elem : #Dom_html.element Js.t) = Js.Opt.(
+      let result = match cb with
+        | None ->
+          react_dom##render react_elem#unsafe_raw elem
+        | Some f ->
+          react_dom##render react_elem#unsafe_raw elem !@f
+      in
+      if Js.Opt.test result
+      then return (new react_element result) |> to_option
+      else Js.null |> to_option
+    )
 
 end
 
@@ -128,9 +133,14 @@ end
 (*       () *)
 (*     |> create_class *)
 (*   in *)
-(*   let comment_box_instance = create_element (React_class commentbox) in *)
-(*   ignore ( *)
+(*   let comment_box_instance = *)
+(*     create_element (React_class commentbox) *)
+(*   in *)
+(*   match *)
 (*     ReactDOM.render *)
 (*       ~react_elem:comment_box_instance *)
+(*       ~on_update_or_render:(fun () -> print_endline "Called Render") *)
 (*       (Dom_html.getElementById "content") *)
-(*   ) *)
+(*   with *)
+(*   | None -> print_endline "Couldn't render element" *)
+(*   | Some _ -> print_endline "Rendered!" *)
