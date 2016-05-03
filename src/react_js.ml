@@ -61,21 +61,41 @@ end
 let create_class (com_spec : component_spec) =
   new react_class (react##createClass com_spec#unsafe_raw)
 
-let create_element
-    ~children:(c : [`Elems of react_element list
-                   | `Inner_html of string])
-    ~class_name
-    (elem : [`Html_elem of string |
-             `React_class of react_class]) = match (elem, c) with
-  | (`Html_elem s, `Inner_html h)  ->
+type _ elem_arg =
+  | React_class : react_class -> react_class elem_arg
+  | New_elem : args -> unit elem_arg
+and args = {html_elem_t : string;
+            class_name : string;
+            content : string;}
+
+let create_element :
+  type a. a elem_arg -> react_element = function
+  (* type a. a elem_arg -> react_element option = function *)
+  | React_class c ->
+    react##createElement c#unsafe_raw Js.null
+  | New_elem {html_elem_t; class_name; content;} ->
     react##createElement
-      (Js.string s)
+      (Js.string html_elem_t)
       (object%js val className = Js.string class_name end)
-      (Js.string h)
-    |> new react_element
-  | (`React_class c, _) ->
-    new react_element c#unsafe_raw
-  | _ -> assert false
+      (Js.string content)
+
+(* This works *)
+
+(* let create_element *)
+(*     ~children:(c : [`Elems of react_element list *)
+(*                    | `Inner_content of string]) *)
+(*     ~class_name *)
+(*     (elem : [`Html_elem of string | *)
+(*              `React_class of react_class]) = match (elem, c) with *)
+(*   | (`Html_elem s, `Inner_content h)  -> *)
+(*     react##createElement *)
+(*       (Js.string s) *)
+(*       (object%js val className = Js.string class_name end) *)
+(*       (Js.string h) *)
+(*     |> new react_element *)
+(*   | (`React_class c, _) -> *)
+(*     new react_element c#unsafe_raw *)
+(*   | _ -> assert false *)
 
 let clone_element ?children ?props (elem : react_element) =
   ()
@@ -93,7 +113,7 @@ module PropTypes = struct end
 
 module Children = struct end
 
-module React_dom = struct
+module ReactDOM = struct
 
   let render
     ?on_update_or_render:(cb : (unit -> unit) option)
