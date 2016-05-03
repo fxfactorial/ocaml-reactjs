@@ -36,6 +36,15 @@ setup.data:
 configure:
 	$(SETUP) -configure $(CONFIGUREFLAGS)
 
-.PHONY: build doc test all install uninstall reinstall clean distclean configure
+.PHONY: build doc test all install uninstall \
+reinstall clean distclean configure debug
 
 # OASIS_STOP
+
+debug:
+	ocamlfind ocamlc -g -package js_of_ocaml.ppx,js_of_ocaml \
+	src/react_js.ml -linkpkg -o T
+	js_of_ocaml --pretty --debug-info --noinline --source-map-inline \
+	T -o tutorial.js
+	mv tutorial.js example/tutorial
+	open example/tutorial/index.html
