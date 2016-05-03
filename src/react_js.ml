@@ -30,7 +30,7 @@ class component_spec
         (prev_props:Js.Unsafe.any ->
          prev_state:Js.Unsafe.any -> unit) option)
     ?(component_will_unmount : (unit -> unit) option)
-    ~render_f:(render_f : (unit -> Js.Unsafe.any))
+    ~render_f:(render_f : (unit -> react_element))
     ~display_name:(display_name : string)
     () = object(self)
 
@@ -40,7 +40,7 @@ class component_spec
     val propTypes = match prop_types with
         None -> Js.null | Some p -> !!p |> Js.Opt.return
     val render =  !! !@(fun () ->
-        render_f ()
+        (render_f ())#unsafe_raw
       )
 
   end
@@ -49,15 +49,15 @@ class component_spec
 
 end
 
-and react_class (elem : Js.Unsafe.any) = object
+and react_class (wrapped_elem : Js.Unsafe.any) = object
 
-  method unsafe_raw = elem
+  method unsafe_raw = wrapped_elem
 
 end
 
-and react_element (elem : Js.Unsafe.any) = object
+and react_element (wrapped_elem : Js.Unsafe.any) = object
 
-  method unsafe_raw = elem
+  method unsafe_raw = wrapped_elem
 
 end
 
@@ -72,22 +72,18 @@ and args = {html_elem_t : string;
             content : string;}
 
 let create_element :
-  type a. a elem_arg -> Js.Unsafe.any = function
-  (* type a. a elem_arg -> react_element option = function *)
+  type a. a elem_arg -> react_element = function
   | React_class c ->
-    (* new react_element (react##createElement c#unsafe_raw Js.null) *)
-    react##createElement c#unsafe_raw Js.null
+    (react##createElement c#unsafe_raw Js.null)
+    |> new react_element
   | New_elem {html_elem_t; class_name; content;} ->
-    let elem =
-      react##createElement
-        (Js.string html_elem_t)
-        (object%js
-          val className = Js.string class_name
-        end)
-        (Js.string content)
-    in
-    elem
-    (* new react_element elem *)
+    react##createElement
+      (Js.string html_elem_t)
+      (object%js
+        val className = Js.string class_name
+      end)
+      (Js.string content)
+    |> new react_element
 
 let clone_element ?children ?props (elem : react_element) =
   ()
@@ -109,33 +105,32 @@ module ReactDOM = struct
 
   let render
     ?on_update_or_render:(cb : (unit -> unit) option)
-    ~react_elem:(react_elem : Js.Unsafe.any)
+    ~react_elem:(react_elem : react_element)
     (elem : #Dom_html.element Js.t) =
     match cb with
     | None ->
-      stringify react_elem |> print_endline;
-      react_dom##render react_elem elem
+      react_dom##render react_elem#unsafe_raw elem
     | Some f ->
-      react_dom##render react_elem elem !@f
+      react_dom##render react_elem#unsafe_raw elem !@f
 
 end
 
-let () =
-  let commentbox =
-    new component_spec
-      ~display_name:"CommentBox"
-      ~render_f:(fun () ->
-          create_element
-            (New_elem {html_elem_t = "div";
-                       class_name = "commentBox";
-                       content = "Hello world, I'm a commentbox"})
-        )
-      ()
-    |> create_class
-  in
-  let comment_box_instance = create_element (React_class commentbox) in
-  ignore (
-    ReactDOM.render
-      ~react_elem:comment_box_instance
-      (Dom_html.getElementById "content")
-  )
+(* let () = *)
+(*   let commentbox = *)
+(*     new component_spec *)
+(*       ~display_name:"CommentBox" *)
+(*       ~render_f:(fun () -> *)
+(*           create_element *)
+(*             (New_elem {html_elem_t = "div"; *)
+(*                        class_name = "commentBox"; *)
+(*                        content = "Hello world, I'm a comment box"}) *)
+(*         ) *)
+(*       () *)
+(*     |> create_class *)
+(*   in *)
+(*   let comment_box_instance = create_element (React_class commentbox) in *)
+(*   ignore ( *)
+(*     ReactDOM.render *)
+(*       ~react_elem:comment_box_instance *)
+(*       (Dom_html.getElementById "content") *)
+(*   ) *)
