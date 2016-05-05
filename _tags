@@ -1,0 +1,5 @@
+# -*- conf -*-
+true: safe_string, debug
+<src/*.ml{,i}>: pkg_js_of_ocaml
+<src/*.ml{,i}>: pkg_js_of_ocaml.ppx
+<src/*.ml{,i}>: pkg_runa
