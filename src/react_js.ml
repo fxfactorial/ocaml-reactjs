@@ -33,6 +33,9 @@ module Helpers = struct
 
   let with_this f = !!(Js.wrap_meth_callback f)
 
+  let any_of_strs rest =
+    (rest |> List.map (fun s -> !!(Js.string s))) |> Array.of_list
+
 end
 
 let (react, react_dom) =
@@ -111,7 +114,7 @@ module type CREATE_REACT_CLASS = sig
         (this:any -> next_props:any -> next_state:any -> unit) option;
       component_will_unmount :
         (this:any -> next_props:any -> next_state:any -> unit) option;
-      props : any Jstable.t option }
+      custom_fields : any Jstable.t option }
 
   val spec : comp_spec
 
@@ -138,7 +141,7 @@ module R_CLASS = struct
         (this:any -> next_props:any -> next_state:any -> unit) option;
       component_will_unmount :
         (this:any -> next_props:any -> next_state:any -> unit) option;
-      props : any Jstable.t option }
+      custom_fields : any Jstable.t option }
 
 end
 
@@ -162,8 +165,17 @@ module React = struct
                props = {fields = None;
                         children = `Plain_text [text]}} ->
               react##createElement (Js.string node) Js.null (Js.string text)
+            | {type_ = `Dom_node_name node;
+               props = {fields = Some other_fields;
+                        children = `Plain_text rest}} ->
+              (Array.append
+                 [|!!(Js.string node); (object_of_table other_fields)|]
+                 (any_of_strs rest)
+              )
+              |> m react "createElement"
+
             (* Huge number of other cases missing *)
-            | _ -> B.spec.render ~this
+            (* | _ -> B.spec.render ~this *)
           )
         val displayName = (match B.spec.display_name with
             | None -> Js.null
@@ -190,8 +202,8 @@ module React = struct
       in
       react##createClass
         (merge with_fields
-           (match B.spec.props with None -> Js.null
-                                  | Some t -> object_of_table t))
+           (match B.spec.custom_fields with None -> Js.null
+                                          | Some t -> object_of_table t))
     )
 
   let create_factory app : Js.Unsafe.any -> Js.Unsafe.any =
@@ -244,7 +256,7 @@ module Examples_and_tutorials = struct
                print_endline "Component did update");
            component_will_unmount = Some (fun ~this:_ ~next_props:_ ~next_state:_ ->
                print_endline "Will unmount");
-           props = None}
+           custom_fields = None}
       end)
     in
     let factory = React.create_factory c in
@@ -260,14 +272,28 @@ module Examples_and_tutorials = struct
 
   let ex_2 = fun () ->
     let other_fields = Jstable.create () in
-    Jstable.add other_fields (Js.string "handleClick") (with_this (fun this ->
-        object%js end));
+    Jstable.add other_fields (Js.string "handleClick")
+      (with_this (fun this ->
+           Js.Unsafe.fun_call (this <!> "setState")
+             [|!!(object%js
+                 val count = ((this <!> "state") <!> "count") + 1
+               end)|]
+         ));
+    let elem_obj = Jstable.create () in
+    Jstable.add elem_obj (Js.string "onClick") (with_this (fun this ->
+        print_endline "Calling in handle click";
+        log this;
+        this <!> "handleClick"
+      ));
     let counter = React.create_class (module struct include R_CLASS
         let spec =
-          {render = (fun ~this:_ ->
+          {render = (fun ~this ->
                {type_ = `Dom_node_name "button";
-                props = {fields = None;
-                         children = `Plain_text ["Click me! Number of clicks: "]}}
+                props = {fields = Some elem_obj;
+                         children = `Plain_text ["Click me! Number of clicks: ";
+                                                 ((this <!> "state") <!> "count")
+                                                 |> string_of_int]
+                        }}
              );
            display_name = None;
                       component_will_mount = Some (fun ~this:_ ->
@@ -292,12 +318,13 @@ module Examples_and_tutorials = struct
                print_endline "Component did update");
            component_will_unmount = Some (fun ~this:_ ~next_props:_ ~next_state:_ ->
                print_endline "Will unmount");
-           props = None}
+           custom_fields = Some other_fields}
 
       end)
     in
-    ()
+    let e = React.create_element (React_class counter) in
+    react_dom##render e (Dom_html.getElementById "content")
 
 end
 
-let _ = Examples_and_tutorials.ex_1 ()
+let _ = Examples_and_tutorials.ex_2 ()
