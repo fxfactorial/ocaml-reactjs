@@ -47,22 +47,25 @@ type element = {type_ : [`Dom_node_name of string |
                 props : prop_t }
 and prop_t = {fields : Js.Unsafe.any Jstable.t option;
               children : [`Nested_elem of element list |
-                          `Plain_text of string]}
+                          `Plain_text of string list]}
 
 let of_element elem = Helpers.(
     let rec convert = function
       | {type_ = `Dom_node_name h;
          props = {fields = None;
-                  children = `Plain_text s}} ->
+                  (* Handle the arrayness,  *)
+                  children = `Plain_text l}} ->
         !!(object%js
           val type_ = !!(Js.string h)
           val props = (object%js
-            val children = !!(Js.string s)
+            val children =
+              if List.length l = 1 then !!(List.hd l |> Js.string)
+              else !!(List.map Js.string l |> Array.of_list |> Js.array)
           end)
         end)
       | {type_ = `React_class e;
          props = {fields = None;
-                  children = `Plain_text s}} ->
+                  children = `Plain_text [s]}} ->
         !!(object%js
           val type_ = !!(convert e)
           val props = (object%js
@@ -85,7 +88,7 @@ let button_example = Helpers.(
      props = {fields = Some t;
               children = `Nested_elem [{type_ = `Dom_node_name "b";
                                         props = {fields = None;
-                                                 children = `Plain_text "OK!";}
+                                                 children = `Plain_text ["OK!"];}
                                        }]}})
 
 module type CREATE_REACT_CLASS = sig
@@ -95,6 +98,7 @@ module type CREATE_REACT_CLASS = sig
   type comp_spec =
     { render : this:any -> element;
       display_name : string option;
+      get_initial_state : (this:any -> any) option;
       component_will_mount : (this:any -> unit) option;
       component_did_mount : (this:any -> unit) option;
       component_will_receive_props :
@@ -113,12 +117,15 @@ module type CREATE_REACT_CLASS = sig
 
 end
 
+(* type 'b comp_spec = (module CREATE_REACT_CLASS with type comp_spec = 'b) *)
+
 module R_CLASS = struct
   open Js.Unsafe
 
   type comp_spec =
     { render : this:any -> element;
       display_name : string option;
+      get_initial_state : (this:any -> any) option;
       component_will_mount : (this:any -> unit) option;
       component_did_mount : (this:any -> unit) option;
       component_will_receive_props :
@@ -138,6 +145,14 @@ end
 
 module React = struct
 
+  type elem_arg =
+    | React_class of Js.Unsafe.any
+    | New_class of element
+
+  let create_element = function
+    | React_class c -> react##createElement c Js.null
+    | New_class _ -> ()
+
   let create_class (module B : CREATE_REACT_CLASS) = Helpers.(
       let open B in
       let with_fields = object%js
@@ -145,8 +160,9 @@ module React = struct
             match B.spec.render ~this with
             | {type_ = `Dom_node_name node;
                props = {fields = None;
-                        children = `Plain_text text}} ->
+                        children = `Plain_text [text]}} ->
               react##createElement (Js.string node) Js.null (Js.string text)
+            (* Huge number of other cases missing *)
             | _ -> B.spec.render ~this
           )
         val displayName = (match B.spec.display_name with
@@ -164,6 +180,10 @@ module React = struct
           )
         val componentWillReceiveProps = with_this (fun this ->
             match B.spec.component_will_receive_props with
+            | None -> Js.null
+            | Some f -> f ~this |> Js.Opt.return)
+        val getInitialState = with_this (fun this ->
+            match B.spec.get_initial_state with
             | None -> Js.null
             | Some f -> f ~this |> Js.Opt.return)
       end
@@ -199,29 +219,30 @@ module Examples_and_tutorials = struct
                {type_ = `Dom_node_name "p";
                 props = {fields = None;
                          children = `Plain_text
-                             (P.sprintf
+                             [P.sprintf
                                 "React has been successfully running for %f seconds"
-                                elapsed)
+                                elapsed]
                         }});
            display_name = None;
-           component_will_mount = Some (fun ~this ->
+           get_initial_state = None;
+           component_will_mount = Some (fun ~this:_ ->
                print_endline "About to mount"
              );
-           component_did_mount = Some (fun ~this ->
+           component_did_mount = Some (fun ~this:_ ->
                print_endline "Did Mount"
              );
-           component_will_receive_props = Some (fun ~this ~next_props ->
+           component_will_receive_props = Some (fun ~this:_ ~next_props:_ ->
                print_endline "Will receive props now"
              );
-           should_component_update = Some (fun ~this ~next_props ~next_state ->
+           should_component_update = Some (fun ~this:_ ~next_props:_ ~next_state:_ ->
                print_endline "Should the component update";
                true);
-           component_will_update = Some (fun ~this ~next_props ~next_state ->
+           component_will_update = Some (fun ~this:_ ~next_props:_ ~next_state:_ ->
                print_endline "Component will update"
              );
-           component_did_update = Some (fun ~this ~next_props ~next_state ->
+           component_did_update = Some (fun ~this:_ ~next_props:_ ~next_state:_ ->
                print_endline "Component did update");
-           component_will_unmount = Some (fun ~this ~next_props ~next_state ->
+           component_will_unmount = Some (fun ~this:_ ~next_props:_ ~next_state:_ ->
                print_endline "Will unmount");
            props = None}
       end)
@@ -237,21 +258,45 @@ module Examples_and_tutorials = struct
     )
     |> set_interval ~every:50.0
 
-  (* let ex_2 = fun () -> *)
-  (*   let counter = React.create_class (module struct include R_CLASS *)
-  (*       let spec = *)
-  (*         {render = (fun ~this -> *)
-  (*              {type_ = `Dom_node_name "button"; *)
-  (*               props = {fields = None; *)
-  (*                       children = `Plain_text "Click me! Number of clicks: "}} *)
-  (*            ); *)
-  (*          display_name = None; *)
-  (*          props = None} *)
+  let ex_2 = fun () ->
+    let other_fields = Jstable.create () in
+    Jstable.add other_fields (Js.string "handleClick") (with_this (fun this ->
+        object%js end));
+    let counter = React.create_class (module struct include R_CLASS
+        let spec =
+          {render = (fun ~this:_ ->
+               {type_ = `Dom_node_name "button";
+                props = {fields = None;
+                         children = `Plain_text ["Click me! Number of clicks: "]}}
+             );
+           display_name = None;
+                      component_will_mount = Some (fun ~this:_ ->
+               print_endline "About to mount"
+             );
+           get_initial_state = Some (fun ~this ->
+               !!(object%js val count = 0 end)
+             );
+           component_did_mount = Some (fun ~this:_ ->
+               print_endline "Did Mount"
+             );
+           component_will_receive_props = Some (fun ~this:_ ~next_props:_ ->
+               print_endline "Will receive props now"
+             );
+           should_component_update = Some (fun ~this:_ ~next_props:_ ~next_state:_ ->
+               print_endline "Should the component update";
+               true);
+           component_will_update = Some (fun ~this:_ ~next_props:_ ~next_state:_ ->
+               print_endline "Component will update"
+             );
+           component_did_update = Some (fun ~this:_ ~next_props:_ ~next_state:_ ->
+               print_endline "Component did update");
+           component_will_unmount = Some (fun ~this:_ ~next_props:_ ~next_state:_ ->
+               print_endline "Will unmount");
+           props = None}
 
-  (*     end) *)
-  (*   in *)
-  (*   () *)
-
+      end)
+    in
+    ()
 
 end
 
