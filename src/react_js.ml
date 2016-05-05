@@ -89,20 +89,49 @@ let button_example = Helpers.(
                                        }]}})
 
 module type CREATE_REACT_CLASS = sig
-  type comp_spec = { render : this:Js.Unsafe.any -> element;
-                     display_name : string option;
-                     component_will_mount : (unit -> unit) option;
-                     props : Js.Unsafe.any Jstable.t option }
+
+  open Js.Unsafe
+
+  type comp_spec =
+    { render : this:any -> element;
+      display_name : string option;
+      component_will_mount : (this:any -> unit) option;
+      component_did_mount : (this:any -> unit) option;
+      component_will_receive_props :
+        (this:any -> next_props:any -> unit) option;
+      should_component_update :
+        (this:any -> next_props:any -> next_state:any -> bool) option;
+      component_will_update :
+        (this:any -> next_props:any -> next_state:any -> unit) option;
+      component_did_update :
+        (this:any -> next_props:any -> next_state:any -> unit) option;
+      component_will_unmount :
+        (this:any -> next_props:any -> next_state:any -> unit) option;
+      props : any Jstable.t option }
 
   val spec : comp_spec
 
 end
 
 module R_CLASS = struct
-  type comp_spec = { render : this:Js.Unsafe.any -> element;
-                     display_name : string option;
-                     component_will_mount : (unit -> unit) option;
-                     props : Js.Unsafe.any Jstable.t option }
+  open Js.Unsafe
+
+  type comp_spec =
+    { render : this:any -> element;
+      display_name : string option;
+      component_will_mount : (this:any -> unit) option;
+      component_did_mount : (this:any -> unit) option;
+      component_will_receive_props :
+        (this:any -> next_props:any -> unit) option;
+      should_component_update :
+        (this:any -> next_props:any -> next_state:any -> bool) option;
+      component_will_update :
+        (this:any -> next_props:any -> next_state:any -> unit) option;
+      component_did_update :
+        (this:any -> next_props:any -> next_state:any -> unit) option;
+      component_will_unmount :
+        (this:any -> next_props:any -> next_state:any -> unit) option;
+      props : any Jstable.t option }
 
 end
 
@@ -110,6 +139,7 @@ end
 module React = struct
 
   let create_class (module B : CREATE_REACT_CLASS) = Helpers.(
+      let open B in
       let with_fields = object%js
         val render = with_this (fun this ->
             match B.spec.render ~this with
@@ -119,14 +149,23 @@ module React = struct
               react##createElement (Js.string node) Js.null (Js.string text)
             | _ -> B.spec.render ~this
           )
-        val displayName =
-          (match B.spec.display_name with
-           | None -> Js.null
-           | Some s -> Js.string s |> Js.Opt.return)
-        val componentWillMount = (match B.spec.component_will_mount with
-          | None -> Js.null
-          | Some f -> with_this f |> Js.Opt.return
+        val displayName = (match B.spec.display_name with
+            | None -> Js.null
+            | Some s -> Js.string s |> Js.Opt.return)
+        val componentWillMount = with_this (fun this ->
+            match B.spec.component_will_mount with
+            | None -> Js.null
+            | Some f -> f ~this |> Js.Opt.return
           )
+        val componentDidMount = with_this (fun this ->
+            match B.spec.component_did_mount with
+            | None -> Js.null
+            | Some f -> f ~this |> Js.Opt.return
+          )
+        val componentWillReceiveProps = with_this (fun this ->
+            match B.spec.component_will_receive_props with
+            | None -> Js.null
+            | Some f -> f ~this |> Js.Opt.return)
       end
       in
       react##createClass
@@ -140,7 +179,8 @@ module React = struct
 
   let call_factory ?props factory = Helpers.(
       [|match props with None -> !!Js.null | Some p -> !!(p |> Js.Opt.return)|]
-      |> Js.Unsafe.fun_call factory)
+      |> Js.Unsafe.fun_call factory
+    )
 
 end
 
@@ -164,10 +204,25 @@ module Examples_and_tutorials = struct
                                 elapsed)
                         }});
            display_name = None;
-           component_will_mount = Some (fun this ->
-               log this;
+           component_will_mount = Some (fun ~this ->
                print_endline "About to mount"
              );
+           component_did_mount = Some (fun ~this ->
+               print_endline "Did Mount"
+             );
+           component_will_receive_props = Some (fun ~this ~next_props ->
+               print_endline "Will receive props now"
+             );
+           should_component_update = Some (fun ~this ~next_props ~next_state ->
+               print_endline "Should the component update";
+               true);
+           component_will_update = Some (fun ~this ~next_props ~next_state ->
+               print_endline "Component will update"
+             );
+           component_did_update = Some (fun ~this ~next_props ~next_state ->
+               print_endline "Component did update");
+           component_will_unmount = Some (fun ~this ~next_props ~next_state ->
+               print_endline "Will unmount");
            props = None}
       end)
     in
