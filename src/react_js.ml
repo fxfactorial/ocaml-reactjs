@@ -173,7 +173,6 @@ module React = struct
                  (any_of_strs rest)
               )
               |> m react "createElement"
-
             (* Huge number of other cases missing *)
             (* | _ -> B.spec.render ~this *)
           )
@@ -213,6 +212,24 @@ module React = struct
       [|match props with None -> !!Js.null | Some p -> !!(p |> Js.Opt.return)|]
       |> Js.Unsafe.fun_call factory
     )
+
+  let simple_comp_spec ~html_node msg = R_CLASS.(
+      {render = (fun ~this -> {
+             type_ = `Dom_node_name html_node;
+             props = {fields = None;
+                      children = `Plain_text msg}});
+       display_name = None;
+       get_initial_state = None;
+       component_will_mount = None;
+       component_will_unmount = None;
+       component_will_update = None;
+       component_will_receive_props = None;
+       component_did_update = None;
+       component_did_mount = None;
+       should_component_update = None;
+       custom_fields = None;
+      })
+
 
 end
 
@@ -281,8 +298,6 @@ module Examples_and_tutorials = struct
          ));
     let elem_obj = Jstable.create () in
     Jstable.add elem_obj (Js.string "onClick") (with_this (fun this ->
-        print_endline "Calling in handle click";
-        log this;
         this <!> "handleClick"
       ));
     let counter = React.create_class (module struct include R_CLASS
