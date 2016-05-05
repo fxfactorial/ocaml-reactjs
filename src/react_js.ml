@@ -1,3 +1,5 @@
+module P = Printf
+
 module Helpers = struct
 
   let ( <!> ) obj field = Js.Unsafe.get obj field
@@ -22,6 +24,12 @@ module Helpers = struct
 
   let debug item =
     (Js.Unsafe.global##.FOO := item) |> ignore
+
+  let log l =
+    Firebug.console##log l
+
+  let set_interval ~every:float (callback: unit -> unit) =
+    Dom_html.window##setInterval !@callback float
 
 end
 
@@ -79,10 +87,9 @@ let button_example = Helpers.(
                                      }]}})
 
 module type CREATE_CLASS = sig
-  val render : < .. > Js.t -> element
-  val props : Js.Unsafe.any Jstable.t
+  val render : this:Js.Unsafe.any -> element
+  val props : Js.Unsafe.any Jstable.t option
 end
-
 
 module React = struct
 
@@ -100,21 +107,45 @@ module React = struct
           )|> Js.wrap_meth_callback)
       end
       in
-      react##createClass (merge with_render (object_of_table B.props))
+      react##createClass
+        (merge with_render
+           (match B.props with None -> Js.null
+                             | Some t -> object_of_table t))
     )
 
+  let create_factory app : Js.Unsafe.any -> Js.Unsafe.any =
+    react##createFactory app
+
+  let call_factory ?props factory = Helpers.(
+    [|match props with None -> !!Js.null | Some p -> !!(p |> Js.Opt.return)|]
+    |> Js.Unsafe.fun_call factory)
 
 end
 
-let () =
-  let c = React.create_class (module struct
-      (* Can use ppx extensions on this *)
-      let render this =
-        {type_ = `Dom_node_name "p";
-         props = {fields = None;
-                  children = `Plain_text "Hello World"}}
-      let props = Jstable.create ()
-    end)
-  in
-
-  react_dom##render (React.create_element c) (Dom_html.getElementById "content")
+let _ = Helpers.(
+    let c = React.create_class (module struct
+        let render ~this =
+          let elapsed =
+            (((this <!> "props") <!> "elapsed") |> Js.to_float) /. 1000.0
+          in
+          {type_ = `Dom_node_name "p";
+           props = {fields = None;
+                    children = `Plain_text
+                        (P.sprintf
+                           "React has been successfully running for %f seconds"
+                           elapsed)
+                   }}
+        let props = None
+      end)
+    in
+    let factory = React.create_factory c in
+    let start = (new%js Js.date_now)##getTime in
+    (fun () ->
+       react_dom##render (React.call_factory ~props:(object%js
+                            val elapsed = ((new%js Js.date_now)##getTime -. start)
+                          end)
+                            factory)
+         (Dom_html.getElementById "content")
+    )
+    |> set_interval ~every:50.0
+  )
