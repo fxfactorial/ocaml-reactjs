@@ -31,11 +31,13 @@ module Helpers = struct
   let set_interval ~every:float (callback: unit -> unit) =
     Dom_html.window##setInterval !@callback float
 
+  let with_this f = !!(Js.wrap_meth_callback f)
+
 end
 
 let (react, react_dom) =
-    Js.Unsafe.global##.React,
-    Js.Unsafe.global##.ReactDOM
+  Js.Unsafe.global##.React,
+  Js.Unsafe.global##.ReactDOM
 
 let version = Helpers.(react <!> "version" |> Js.to_string)
 
@@ -77,65 +79,96 @@ let of_element elem = Helpers.(
   )
 
 let button_example = Helpers.(
-  let t = Jstable.create () in
-  Jstable.add t (Js.string "className") !!"button button-blue";
-  {type_ = `Dom_node_name "button";
-   props = {fields = Some t;
-            children = `Nested_elem [{type_ = `Dom_node_name "b";
-                                      props = {fields = None;
-                                               children = `Plain_text "OK!";}
-                                     }]}})
+    let t = Jstable.create () in
+    Jstable.add t (Js.string "className") !!"button button-blue";
+    {type_ = `Dom_node_name "button";
+     props = {fields = Some t;
+              children = `Nested_elem [{type_ = `Dom_node_name "b";
+                                        props = {fields = None;
+                                                 children = `Plain_text "OK!";}
+                                       }]}})
 
-module type CREATE_CLASS = sig
-  val render : this:Js.Unsafe.any -> element
-  val props : Js.Unsafe.any Jstable.t option
+module type CREATE_REACT_CLASS = sig
+  type comp_spec = { render : this:Js.Unsafe.any -> element;
+                     display_name : string option;
+                     component_will_mount : (unit -> unit) option;
+                     props : Js.Unsafe.any Jstable.t option }
+
+  val spec : comp_spec
+
 end
+
+module R_CLASS = struct
+  type comp_spec = { render : this:Js.Unsafe.any -> element;
+                     display_name : string option;
+                     component_will_mount : (unit -> unit) option;
+                     props : Js.Unsafe.any Jstable.t option }
+
+end
+
 
 module React = struct
 
-  let create_element e = react##createElement e Js.null
-
-  let create_class (module B : CREATE_CLASS) = Helpers.(
-      let with_render = object%js
-        val render = !!((fun this ->
-            match B.render this with
+  let create_class (module B : CREATE_REACT_CLASS) = Helpers.(
+      let with_fields = object%js
+        val render = with_this (fun this ->
+            match B.spec.render ~this with
             | {type_ = `Dom_node_name node;
                props = {fields = None;
                         children = `Plain_text text}} ->
               react##createElement (Js.string node) Js.null (Js.string text)
-            | _ -> B.render this
-          )|> Js.wrap_meth_callback)
+            | _ -> B.spec.render ~this
+          )
+        val displayName =
+          (match B.spec.display_name with
+           | None -> Js.null
+           | Some s -> Js.string s |> Js.Opt.return)
+        val componentWillMount = (match B.spec.component_will_mount with
+          | None -> Js.null
+          | Some f -> with_this f |> Js.Opt.return
+          )
       end
       in
       react##createClass
-        (merge with_render
-           (match B.props with None -> Js.null
-                             | Some t -> object_of_table t))
+        (merge with_fields
+           (match B.spec.props with None -> Js.null
+                                  | Some t -> object_of_table t))
     )
 
   let create_factory app : Js.Unsafe.any -> Js.Unsafe.any =
     react##createFactory app
 
   let call_factory ?props factory = Helpers.(
-    [|match props with None -> !!Js.null | Some p -> !!(p |> Js.Opt.return)|]
-    |> Js.Unsafe.fun_call factory)
+      [|match props with None -> !!Js.null | Some p -> !!(p |> Js.Opt.return)|]
+      |> Js.Unsafe.fun_call factory)
 
 end
 
-let _ = Helpers.(
-    let c = React.create_class (module struct
-        let render ~this =
-          let elapsed =
-            (((this <!> "props") <!> "elapsed") |> Js.to_float) /. 1000.0
-          in
-          {type_ = `Dom_node_name "p";
-           props = {fields = None;
-                    children = `Plain_text
-                        (P.sprintf
-                           "React has been successfully running for %f seconds"
-                           elapsed)
-                   }}
-        let props = None
+
+module Examples_and_tutorials = struct
+
+  open Helpers
+
+  let ex_1 = fun () ->
+    let c = React.create_class (module struct include R_CLASS
+        let spec =
+          {render = (fun ~this ->
+               let elapsed =
+                 (((this <!> "props") <!> "elapsed") |> Js.to_float) /. 1000.0
+               in
+               {type_ = `Dom_node_name "p";
+                props = {fields = None;
+                         children = `Plain_text
+                             (P.sprintf
+                                "React has been successfully running for %f seconds"
+                                elapsed)
+                        }});
+           display_name = None;
+           component_will_mount = Some (fun this ->
+               log this;
+               print_endline "About to mount"
+             );
+           props = None}
       end)
     in
     let factory = React.create_factory c in
@@ -148,4 +181,23 @@ let _ = Helpers.(
          (Dom_html.getElementById "content")
     )
     |> set_interval ~every:50.0
-  )
+
+  (* let ex_2 = fun () -> *)
+  (*   let counter = React.create_class (module struct include R_CLASS *)
+  (*       let spec = *)
+  (*         {render = (fun ~this -> *)
+  (*              {type_ = `Dom_node_name "button"; *)
+  (*               props = {fields = None; *)
+  (*                       children = `Plain_text "Click me! Number of clicks: "}} *)
+  (*            ); *)
+  (*          display_name = None; *)
+  (*          props = None} *)
+
+  (*     end) *)
+  (*   in *)
+  (*   () *)
+
+
+end
+
+let _ = Examples_and_tutorials.ex_1 ()
