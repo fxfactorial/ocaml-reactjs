@@ -41,8 +41,10 @@ reinstall clean distclean configure debug
 
 # OASIS_STOP
 
+pkgs := js_of_ocaml,js_of_ocaml.ppx,runa
+
 debug:
-	ocamlfind ocamlc -g -package js_of_ocaml.ppx,js_of_ocaml \
+	ocamlfind ocamlc -g -package ${pkgs} \
 	src/react_js.ml -linkpkg -o T
 	js_of_ocaml --pretty --debug-info --noinline --source-map-inline \
 	T -o tutorial.js

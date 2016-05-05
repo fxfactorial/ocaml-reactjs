@@ -18,7 +18,7 @@ Library react_js
   Modules : React_js
   install: true
   CompiledObject: byte
-  BuildDepends: js_of_ocaml (>= 2.7), js_of_ocaml.ppx
+  BuildDepends: js_of_ocaml (>= 2.7), js_of_ocaml.ppx, runa
 
 SourceRepository master
   Type:     git

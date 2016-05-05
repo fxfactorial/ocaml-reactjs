@@ -1,48 +1,10 @@
 module P = Printf
 
-module Helpers = struct
-
-  let ( <!> ) obj field = Js.Unsafe.get obj field
-  let ( !@ ) f = Js.wrap_callback f
-  let ( !! ) o = Js.Unsafe.inject o
-  let stringify o = Js._JSON##stringify o |> Js.to_string
-  let m = Js.Unsafe.meth_call
-
-  let merge a b : < .. > Js.t = Js.Unsafe.global##.Object##assign a b
-
-  let object_of_table t =
-    let js_keys = Jstable.keys t in
-    let values =
-      js_keys
-      |> List.map
-        (fun k -> (Jstable.find t k |> Js.Optdef.get)
-            (fun () -> assert false))
-    in
-    List.map2 (fun k v -> (Js.to_string k, v)) js_keys values
-    |> Array.of_list
-    |> Js.Unsafe.obj
-
-  let debug item =
-    (Js.Unsafe.global##.FOO := item) |> ignore
-
-  let log l =
-    Firebug.console##log l
-
-  let set_interval ~every:float (callback: unit -> unit) =
-    Dom_html.window##setInterval !@callback float
-
-  let with_this f = !!(Js.wrap_meth_callback f)
-
-  let any_of_strs rest =
-    (rest |> List.map (fun s -> !!(Js.string s))) |> Array.of_list
-
-end
-
 let (react, react_dom) =
   Js.Unsafe.global##.React,
   Js.Unsafe.global##.ReactDOM
 
-let version = Helpers.(react <!> "version" |> Js.to_string)
+let version = Runa.(react <!> "version" |> Js.to_string)
 
 (* this is some insane typing *)
 type element = {type_ : [`Dom_node_name of string |
@@ -52,7 +14,7 @@ and prop_t = {fields : Js.Unsafe.any Jstable.t option;
               children : [`Nested_elem of element list |
                           `Plain_text of string list]}
 
-let of_element elem = Helpers.(
+let of_element elem = Runa.(
     let rec convert = function
       | {type_ = `Dom_node_name h;
          props = {fields = None;
@@ -84,7 +46,7 @@ let of_element elem = Helpers.(
     t
   )
 
-let button_example = Helpers.(
+let button_example = Runa.(
     let t = Jstable.create () in
     Jstable.add t (Js.string "className") !!"button button-blue";
     {type_ = `Dom_node_name "button";
@@ -145,6 +107,8 @@ module R_CLASS = struct
 
 end
 
+let any_of_strs rest = Runa.(
+   (rest |> List.map (fun s -> !!(Js.string s))) |> Array.of_list)
 
 module React = struct
 
@@ -156,11 +120,11 @@ module React = struct
     | React_class c -> react##createElement c Js.null
     | New_class _ -> ()
 
-  let create_class (module B : CREATE_REACT_CLASS) = Helpers.(
+  let create_class (module B : CREATE_REACT_CLASS) = Runa.(
       let open B in
       let with_fields = object%js
         val render = with_this (fun this ->
-            match B.spec.render ~this with
+            match B.spec.render ~this:!!this with
             | {type_ = `Dom_node_name node;
                props = {fields = None;
                         children = `Plain_text [text]}} ->
@@ -182,39 +146,48 @@ module React = struct
         val componentWillMount = with_this (fun this ->
             match B.spec.component_will_mount with
             | None -> Js.null
-            | Some f -> f ~this |> Js.Opt.return
+            | Some f -> f ~this:!!this |> Js.Opt.return
           )
         val componentDidMount = with_this (fun this ->
             match B.spec.component_did_mount with
             | None -> Js.null
-            | Some f -> f ~this |> Js.Opt.return
+            | Some f -> f ~this:!!this |> Js.Opt.return
           )
         val componentWillReceiveProps = with_this (fun this ->
             match B.spec.component_will_receive_props with
             | None -> Js.null
-            | Some f -> f ~this |> Js.Opt.return)
+            | Some f -> f ~this:!!this |> Js.Opt.return)
         val getInitialState = with_this (fun this ->
             match B.spec.get_initial_state with
             | None -> Js.null
-            | Some f -> f ~this |> Js.Opt.return)
+            | Some f -> f ~this:!!this |> Js.Opt.return)
       end
       in
       react##createClass
         (merge with_fields
-           (match B.spec.custom_fields with None -> Js.null
-                                          | Some t -> object_of_table t))
+           (match B.spec.custom_fields with
+              None -> (object%js end)
+            (* Need to find a way to get with_this (fun this ->
+               available to the functions in object_of_table's return
+               value)*)
+                        (* Js.typeof *)
+            | Some t ->
+              let obj = object_of_table t in
+              obj
+
+           ))
     )
 
   let create_factory app : Js.Unsafe.any -> Js.Unsafe.any =
     react##createFactory app
 
-  let call_factory ?props factory = Helpers.(
+  let call_factory ?props factory = Runa.(
       [|match props with None -> !!Js.null | Some p -> !!(p |> Js.Opt.return)|]
       |> Js.Unsafe.fun_call factory
     )
 
   let simple_comp_spec ~html_node msg = R_CLASS.(
-      {render = (fun ~this -> {
+      {render = (fun ~this:_ -> {
              type_ = `Dom_node_name html_node;
              props = {fields = None;
                       children = `Plain_text msg}});
@@ -236,7 +209,7 @@ end
 
 module Examples_and_tutorials = struct
 
-  open Helpers
+  open Runa
 
   let ex_1 = fun () ->
     let c = React.create_class (module struct include R_CLASS
@@ -297,9 +270,7 @@ module Examples_and_tutorials = struct
                end)|]
          ));
     let elem_obj = Jstable.create () in
-    Jstable.add elem_obj (Js.string "onClick") (with_this (fun this ->
-        this <!> "handleClick"
-      ));
+    Jstable.add elem_obj (Js.string "onClick") !!(fun this -> this <!> "handleClick");
     let counter = React.create_class (module struct include R_CLASS
         let spec =
           {render = (fun ~this ->
@@ -314,7 +285,7 @@ module Examples_and_tutorials = struct
                       component_will_mount = Some (fun ~this:_ ->
                print_endline "About to mount"
              );
-           get_initial_state = Some (fun ~this ->
+           get_initial_state = Some (fun ~this:_ ->
                !!(object%js val count = 0 end)
              );
            component_did_mount = Some (fun ~this:_ ->
@@ -342,4 +313,4 @@ module Examples_and_tutorials = struct
 
 end
 
-let _ = Examples_and_tutorials.ex_2 ()
+let _ = Examples_and_tutorials.ex_1 ()
