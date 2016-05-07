@@ -8,8 +8,7 @@ let version = Runa.(react <!> "version" |> Js.to_string)
 
 module React = struct
 
-  type tag = Class | Bare
-
+  (* A whole bunc more to go *)
   type component_spec = { initial_state : (Runa.this -> Js.Unsafe.any) option;
                           default_props : (Runa.this -> Js.Unsafe.any) option;}
 
@@ -19,6 +18,8 @@ module React = struct
 
   type new_elem = { elem_name : string;
                     children : string; }
+
+  let dummy_elem = {elem_name = ""; children = ""; }
 
   class react_element (arg : [`React_class of react_class
                              | `New_elem of new_elem ]) =
@@ -32,7 +33,10 @@ module React = struct
           (Js.string children)
     in
     object
-      method unsafe_raw = Runa.(!!_elem_)
+      val mutable raw_js = _elem_
+      method unsafe_raw = Runa.(!!raw_js)
+      method unsafe_set_raw (new_raw : Js.Unsafe.any) = raw_js <- new_raw
+
     end
 
   and react_class
@@ -60,7 +64,6 @@ module React = struct
       class_
     in
     object
-      method tag = Class
       method unsafe_raw = Runa.(!!_class_)
     end
 
@@ -74,6 +77,19 @@ module React = struct
   let create_element (arg : [`React_class of react_class
                             | `New_elem of new_elem ]) =
     new react_element arg
+
+  let create_factory (arg : [`React_class of react_class
+                            | `Dom_node_name of string]) :
+    Js.Unsafe.any -> react_element = match arg with
+    | `React_class c -> fun options ->
+      let fact = react##createFactory c#unsafe_raw in
+      let dummy = new react_element (`New_elem dummy_elem) in
+      let result = Js.Unsafe.fun_call fact [|options|] in
+      dummy#unsafe_set_raw result;
+      dummy
+    | `Dom_node_name node -> fun options ->
+      react##createFactory (Js.string node)
+
 
   module DOM = struct
 
@@ -99,22 +115,50 @@ module ReactDOM = struct
 
 end
 
-let _ = let open React in
+(* let _ = let open React in *)
+(*   let open Runa in *)
+(*   let comment_box = *)
+(*     create_class *)
+(*       ~com_spec:{initial_state = Some (fun _ -> *)
+(*           !!(object%js val count = 0 end) *)
+(*         ); *)
+(*          default_props = None;} *)
+(*       ~display_name:"Comment Box" *)
+(*       ~render:(fun this -> *)
+(*           `New_elem {elem_name = "p"; *)
+(*                      children = "Hello World"} *)
+(*           |> create_element *)
+(*         ) *)
+(*       None *)
+(*   in *)
+(*   ReactDOM.render *)
+(*     (create_element (`React_class comment_box)) *)
+(*     (Dom_html.getElementById "content") *)
+
+let _ =
+  let open React in
   let open Runa in
-  let comment_box =
-    create_class
-      ~com_spec:{initial_state = Some (fun _ ->
-          !!(object%js val count = 0 end)
-        );
-         default_props = None;}
-      ~display_name:"Comment Box"
+  let example_application = create_class
       ~render:(fun this ->
-          `New_elem {elem_name = "p";
-                     children = "Hello World"}
+          let seconds =
+            Js.math##round (((this <!> "props") <!> "elapsed") /. 100.0)
+          in
+          let msg =
+            P.sprintf "React has been running for %f seconds" seconds
+          in
+          `New_elem {elem_name = "p"; children = msg}
           |> create_element
         )
+      ~display_name:"App"
       None
   in
-  ReactDOM.render
-    (create_element (`React_class comment_box))
-    (Dom_html.getElementById "content")
+  let app_factory = create_factory (`React_class example_application) in
+  let start = time_now () in
+  (fun () ->
+     ReactDOM.render
+       (app_factory !!(object%js
+          val elapsed = time_now () -. start
+        end))
+       (Dom_html.getElementById "content")
+  )
+  |> set_interval ~every:50.0
