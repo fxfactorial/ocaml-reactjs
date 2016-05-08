@@ -8,7 +8,7 @@ let version = Runa.(react <!> "version" |> Js.to_string)
 
 module React = struct
 
-  (* A whole bunc more to go *)
+  (* A whole bunch more to go *)
   type component_spec = { initial_state : (Runa.this -> Js.Unsafe.any) option;
                           default_props : (Runa.this -> Js.Unsafe.any) option;}
 
@@ -30,10 +30,7 @@ module React = struct
       | `New_elem {elem_name; props; children} ->
         react##createElement
           (Js.string elem_name)
-          Runa.(match props with None -> !!(object%js end) | Some p ->
-
-
-              !!p)
+          Runa.(match props with None -> !!(object%js end) | Some p -> !!p)
           (Js.string children)
     in
     object
@@ -61,8 +58,7 @@ module React = struct
     in
     object
       val mutable _react_obj = object%js end
-      initializer
-        match extras with
+      initializer match extras with
         | None ->
           _react_obj <- react##createClass _base_obj_
         | Some obj ->
@@ -171,15 +167,14 @@ open Runa
 let _ =
   let counter = create_class
       ~com_spec:{initial_state = Some (fun _ -> !!(object%js val count = 0 end));
-                 default_props = None}
+                 default_props = None;}
       ~render:(fun this ->
           `New_elem {elem_name = "button";
                      props = Some !!(object%js
                          val onClick = this <!> "handleClick"
                        end);
-                     children =
-                       ((this <!> "state") <!> "count")
-                       |> P.sprintf "Click me, count: %d"}
+                     children = ((this <!> "state") <!> "count")
+                                |> P.sprintf "Click me, count: %d";}
           |> create_element
         )
       ~display_name:"Counter"
@@ -188,10 +183,14 @@ let _ =
                     [|!!(object%js
                         val count = ((this <!> "state") <!> "count") + 1
                       end)|]
-                    |> Js.Unsafe.call (this <!> "setState") this
+                    |> Js.Unsafe.meth_call this "setState"
                   )
               end)))
   in
-  ReactDOM.render
-    (create_element (`React_class counter))
-    (Dom_html.getElementById "content")
+  try
+    ReactDOM.render
+      (create_element (`React_class counter))
+      (Dom_html.getElementById "content")
+  with
+    Js.Error e ->
+    print_endline ("Errored" ^ (Js.to_string e##.message))
