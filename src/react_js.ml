@@ -47,7 +47,7 @@ module React = struct
       ?com_spec:(com_spec = (simple_defaults :  component_spec))
       ~render:(render_f : Runa.this -> react_element)
       ~display_name:d
-      (extras : (unit -> Js.Unsafe.any) option)
+      (extras : (unit -> _ Js.t) option)
     =
     let _base_obj_ =
       object%js
@@ -60,18 +60,14 @@ module React = struct
       end
     in
     object
-      val mutable _react_obj = (object%js end)
+      val mutable _react_obj = object%js end
       initializer
         match extras with
         | None ->
           _react_obj <- react##createClass _base_obj_
         | Some obj ->
-          let wrapped_f = Js.wrap_callback obj in
-          _react_obj <-
-            react##createClass
-              (Js.Unsafe.fun_call wrapped_f [||]
-               |> Runa.merge _base_obj_ )
-
+          let merged = Runa.merge _base_obj_ (obj ()) in
+          _react_obj <- react##createClass merged
 
       method unsafe_raw = Runa.(!!_react_obj)
     end
@@ -80,7 +76,7 @@ module React = struct
       ?com_spec:(com_spec = (simple_defaults :  component_spec))
       ~render:(render : Runa.this -> react_element)
       ~display_name:display_name
-      (extras : (unit -> Js.Unsafe.any) option) =
+      (extras : (unit -> _ Js.t) option) =
     new react_class ~com_spec ~render ~display_name extras
 
   let create_element (arg : [`React_class of react_class
@@ -179,8 +175,7 @@ let _ =
       ~render:(fun this ->
           `New_elem {elem_name = "button";
                      props = Some !!(object%js
-                         val onClick = (fun () -> this <!> "handleClick")
-                                       |> Js.wrap_callback
+                         val onClick = this <!> "handleClick"
                        end);
                      children =
                        ((this <!> "state") <!> "count")
@@ -188,9 +183,8 @@ let _ =
           |> create_element
         )
       ~display_name:"Counter"
-      (Some (fun () -> !!(object%js
+      (Some (fun () -> (object%js
                 val handleClick = Js.wrap_meth_callback (fun this ->
-                    print_endline "Handle click now called";
                     [|!!(object%js
                         val count = ((this <!> "state") <!> "count") + 1
                       end)|]
