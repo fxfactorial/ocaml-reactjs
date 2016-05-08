@@ -17,19 +17,23 @@ module React = struct
       default_props = None; }
 
   type new_elem = { elem_name : string;
+                    props : Js.Unsafe.any option;
                     children : string; }
 
-  let dummy_elem = {elem_name = ""; children = ""; }
+  let dummy_elem = {elem_name = ""; props = None; children = "";}
 
   class react_element (arg : [`React_class of react_class
                              | `New_elem of new_elem ]) =
     let _elem_ = match arg with
       | `React_class e ->
         react##createElement e#unsafe_raw Js.null
-      | `New_elem {elem_name; children} ->
+      | `New_elem {elem_name; props; children} ->
         react##createElement
           (Js.string elem_name)
-          (object%js end)
+          Runa.(match props with None -> !!(object%js end) | Some p ->
+
+
+              !!p)
           (Js.string children)
     in
     object
@@ -43,11 +47,10 @@ module React = struct
       ?com_spec:(com_spec = (simple_defaults :  component_spec))
       ~render:(render_f : Runa.this -> react_element)
       ~display_name:d
-      extras
+      (extras : (unit -> Js.Unsafe.any) option)
     =
-    let _class_ =
-      let open Runa in
-      let obj_render = object%js
+    let _base_obj_ =
+      object%js
         val displayName = Js.string d
         val render =
           (fun this -> (render_f this)#unsafe_raw)
@@ -55,23 +58,29 @@ module React = struct
         val getInitialState = Runa.when_f com_spec.initial_state
         val getDefaultProps = Runa.when_f com_spec.default_props
       end
-      in
-      let obj_merged =
-        (match extras with None -> object%js end | Some p -> object_of_table p)
-        |> merge obj_render
-      in
-      let class_ = react##createClass obj_merged in
-      class_
     in
     object
-      method unsafe_raw = Runa.(!!_class_)
+      val mutable _react_obj = (object%js end)
+      initializer
+        match extras with
+        | None ->
+          _react_obj <- react##createClass _base_obj_
+        | Some obj ->
+          let wrapped_f = Js.wrap_callback obj in
+          _react_obj <-
+            react##createClass
+              (Js.Unsafe.fun_call wrapped_f [||]
+               |> Runa.merge _base_obj_ )
+
+
+      method unsafe_raw = Runa.(!!_react_obj)
     end
 
   let create_class
       ?com_spec:(com_spec = (simple_defaults :  component_spec))
       ~render:(render : Runa.this -> react_element)
       ~display_name:display_name
-      extras =
+      (extras : (unit -> Js.Unsafe.any) option) =
     new react_class ~com_spec ~render ~display_name extras
 
   let create_element (arg : [`React_class of react_class
@@ -115,6 +124,8 @@ module ReactDOM = struct
 
 end
 
+open React
+open Runa
 (* let _ = let open React in *)
 (*   let open Runa in *)
 (*   let comment_box = *)
@@ -135,30 +146,58 @@ end
 (*     (create_element (`React_class comment_box)) *)
 (*     (Dom_html.getElementById "content") *)
 
+(* let _ = *)
+(*   let example_application = create_class *)
+(*       ~render:(fun this -> *)
+(*           let seconds = *)
+(*             Js.math##round (((this <!> "props") <!> "elapsed") /. 100.0) *)
+(*           in *)
+(*           let msg = *)
+(*             P.sprintf "React has been running for %f seconds" seconds *)
+(*           in *)
+(*           `New_elem {elem_name = "p"; props = None; children = msg} *)
+(*           |> create_element *)
+(*         ) *)
+(*       ~display_name:"App" *)
+(*       None *)
+(*   in *)
+(*   let app_factory = create_factory (`React_class example_application) in *)
+(*   let start = time_now () in *)
+(*   (fun () -> *)
+(*      ReactDOM.render *)
+(*        (app_factory !!(object%js *)
+(*           val elapsed = time_now () -. start *)
+(*         end)) *)
+(*        (Dom_html.getElementById "content") *)
+(*   ) *)
+(*   |> set_interval ~every:50.0 *)
+
 let _ =
-  let open React in
-  let open Runa in
-  let example_application = create_class
+  let counter = create_class
+      ~com_spec:{initial_state = Some (fun _ -> !!(object%js val count = 0 end));
+                 default_props = None}
       ~render:(fun this ->
-          let seconds =
-            Js.math##round (((this <!> "props") <!> "elapsed") /. 100.0)
-          in
-          let msg =
-            P.sprintf "React has been running for %f seconds" seconds
-          in
-          `New_elem {elem_name = "p"; children = msg}
+          `New_elem {elem_name = "button";
+                     props = Some !!(object%js
+                         val onClick = (fun () -> this <!> "handleClick")
+                                       |> Js.wrap_callback
+                       end);
+                     children =
+                       ((this <!> "state") <!> "count")
+                       |> P.sprintf "Click me, count: %d"}
           |> create_element
         )
-      ~display_name:"App"
-      None
+      ~display_name:"Counter"
+      (Some (fun () -> !!(object%js
+                val handleClick = Js.wrap_meth_callback (fun this ->
+                    print_endline "Handle click now called";
+                    [|!!(object%js
+                        val count = ((this <!> "state") <!> "count") + 1
+                      end)|]
+                    |> Js.Unsafe.call (this <!> "setState") this
+                  )
+              end)))
   in
-  let app_factory = create_factory (`React_class example_application) in
-  let start = time_now () in
-  (fun () ->
-     ReactDOM.render
-       (app_factory !!(object%js
-          val elapsed = time_now () -. start
-        end))
-       (Dom_html.getElementById "content")
-  )
-  |> set_interval ~every:50.0
+  ReactDOM.render
+    (create_element (`React_class counter))
+    (Dom_html.getElementById "content")
