@@ -1,6 +1,7 @@
+# -*- conf -*-
 opam-version: "1.2"
 name: "react_js"
-version: "0.1.0"
+version: "0.0.1"
 maintainer: "Edgar Aroutiounian <edgar.factorial@gmail.com>"
 authors: [ "Edgar Aroutiounian <edgar.factorial@gmail.com>" ]
 license: "BSD-3-clause"
@@ -14,7 +15,7 @@ build: [
 ]
 install: ["ocaml" "setup.ml" "-install"]
 remove: [
-  ["ocamlfind" "remove" "react_js"]
+  ["ocamlfind" "remove" "reactjs"]
 ]
 build-test: [
   ["oasis" "setup"]
@@ -23,7 +24,9 @@ build-test: [
   ["ocaml" "setup.ml" "-test"]
 ]
 depends: [
-  "js_of_ocaml" {>= "2.7"}
+  "js_of_ocaml" {>= "2.8.1"}
+  "lwt" {>= "2.5.2"}
   "oasis" {build & >= "0.4"}
+  "ocamlbuild" {build}
   "ocamlfind" {build}
 ]

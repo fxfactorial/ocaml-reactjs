@@ -36,8 +36,7 @@ setup.data:
 configure:
 	$(SETUP) -configure $(CONFIGUREFLAGS)
 
-.PHONY: build doc test all install uninstall \
-reinstall clean distclean configure debug
+.PHONY: build doc test all install uninstall reinstall clean distclean configure
 
 # OASIS_STOP
 
