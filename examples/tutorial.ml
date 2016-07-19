@@ -1,13 +1,14 @@
 let commentBox =
   Reactjs.react##createClass
-    (object%js
+    (object%js(self)
       val displayName = Js.string "CommentBox" |> Js.Opt.return
       method render =
-        Js.wrap_meth_callback
-          (fun this_handle ->
-             Firebug.console##log this_handle;
-             Reactjs.react##createElement_withString (Js.string "div")
-          )
+        Reactjs.react##createElement_withPropsAndSingleText
+          (Js.string "div")
+          (object%js val className = Js.string "commentBox" end)
+          (Js.string "Hello, world! I am a CommentBox.")
+      method getInitialState = Js.null
+      method getDefaultProps = Js.null
     end)
 
 let () =

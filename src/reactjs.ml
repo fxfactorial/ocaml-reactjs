@@ -35,8 +35,9 @@ and react_dom = object
   method unmountComponentAtNode :
     #Dom_html.element Js.t -> bool Js.t Js.meth
 
-  method findDOMNode :
-    react_component Js.t -> #Dom_html.element Js.t Js.meth
+  (* method findDOMNode : *)
+  (*    Js.t -> #Dom_html.element Js.t Js.meth *)
+
 end
 
 and react = object
@@ -49,15 +50,26 @@ and react = object
   method createElement_withString :
     Js.js_string Js.t -> react_element Js.t Js.meth
 
+  method createElement_withPropsAndSingleText :
+    Js.js_string Js.t ->
+    <className: Js.js_string Js.t Js.readonly_prop> Js.t ->
+    Js.js_string Js.t ->
+    react_element Js.t Js.meth
+
   method createElement_WithReactClass :
     react_class Js.t -> _ Js.Opt.t -> react_element Js.t Js.meth
   method cloneElement : react_element Js.t -> react_element Js.t Js.meth
   method isValidElement : 'a Js.t -> bool Js.t Js.meth
   (* method _PropTypes *)
+
   method createClass :
-    <displayName : Js.js_string Js.t Js.Opt.t  Js.readonly_prop;
-     render : ('a, react_element Js.t) Js.meth_callback Js.meth > Js.t ->
+    (* Could this be in a react component *)
+    <displayName : Js.js_string Js.t Js.Opt.t Js.readonly_prop;
+     getInitialState : 'a Js.t Js.Opt.t Js.meth;
+     getDefaultProps : 'a Js.t Js.Opt.t Js.meth;
+     render : react_element Js.t Js.meth> Js.t ->
     react_class Js.t Js.meth
+
   method createFactory_withString :
     Js.js_string Js.t -> factory_function Js.t Js.meth
   (* method createMixin *)
@@ -198,10 +210,6 @@ and react = object
 end
 
 and react_element = object
-
-end
-
-and react_component = object
 
 end
 
