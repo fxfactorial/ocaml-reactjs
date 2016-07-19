@@ -1,16 +1,23 @@
 open Reactjs_high_level
 
 let commentBox =
-  Reactjs_high_level.with_default_options
-    ~component_will_mount:(fun this -> print_endline "Component About to mount")
+  with_default_options
+    ~default_props:(fun _ ->
+        object%js
+          val some_words = Js.string "These are some things I wanted to pass Around"
+        end
+      )
     ~component_did_mount:(fun this ->
-        Printf.sprintf "My name is: %s" (this##.displayName |> Js.to_string)
-        |> print_endline)
-    ~render:(fun this -> create_element
-                {element_name = "div";
-                 class_name = "commentBox";
-                 children = `Text_nodes ["Hello, world! I am a CommentBox"]})
-    ~display_name:(fun this -> "CommentBox") ()
+        Printf.sprintf "Pulling out of the props: %s"
+          (this##.props##.some_words |> Js.to_string)
+        |> print_endline
+      )
+    ~render:(fun _ ->
+        create_element
+          {element_name = "div";
+           class_name = "commentBox";
+           children = `Text_nodes ["Hello, world! I am a CommentBox"]})
+    "CommentBox"
   |> create_class
 
 let () =

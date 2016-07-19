@@ -1,3 +1,6 @@
+let debug thing field =
+  Firebug.console##log (Js.Unsafe.meth_call (Js.Unsafe.get thing field) "toString" [||])
+
 type element_opts =
   { element_name : string;
     class_name: string;
@@ -13,41 +16,45 @@ type ('this,
       'next_state,
       'prev_props,
       'prev_state,
-      'misc_object) component =
+      'props,
+      'this_record) component =
   { render: 'this Js.t -> Reactjs.react_element Js.t;
     initial_state : ('this Js.t -> 'initial_state Js.t) option;
     default_props : ('this Js.t -> 'default_props Js.t) option;
-    prop_types : ('this Js.t -> 'prop_types Js.t) option;
+    prop_types : 'prop_types Js.t option;
     mixins :
       ('this Js.t -> ('this, 'initial_state, 'default_props, 'prop_types,
                       'static_functions, 'next_props, 'next_state,
-                      'prev_props, 'prev_state, 'misc_object) component list) option;
-    statics : ('this Js.t -> 'static_functions Js.t) option;
-    display_name : ('this Js.t -> string);
+                      'prev_props, 'prev_state, 'props, 'this_record) component list) option;
+    statics : 'static_functions Js.t option;
+    display_name : string;
+
     component_will_mount : ('this Js.t -> unit) option;
+
     component_did_mount : ('this Js.t -> unit) option;
+
     component_will_receive_props : ('this Js.t -> 'next_props Js.t -> unit) option;
+
     should_component_update :
       ('this Js.t -> 'next_props Js.t -> 'next_state Js.t -> bool Js.t) option;
     component_will_update :
       ('this Js.t -> 'next_props Js.t -> 'next_state Js.t -> unit) option;
     component_did_update :
       ('this Js.t -> 'prev_props Js.t -> 'prev_state Js.t) option;
-    component_will_unmount : ('this Js.t -> unit) option;
-    misc : ('this Js.t -> 'misc_object Js.t) option;}
+    component_will_unmount : ('this Js.t -> unit) option;}
+
 
 let with_default_options
     ?initial_state ?default_props ?prop_types
     ?mixins ?statics ?component_will_mount ?component_did_mount
     ?component_will_receive_props ?should_component_update
     ?component_will_update ?component_did_update
-    ?component_will_unmount ?misc
-    ~render ~display_name () =
+    ?component_will_unmount
+    ~render display_name =
   {render; display_name; initial_state; default_props;prop_types; mixins;
    statics; component_will_mount; component_did_mount;
    component_will_receive_props; should_component_update;
-   component_will_update; component_did_update;
-   component_will_unmount; misc}
+   component_will_update; component_did_update; component_will_unmount;}
 
 let create_element element_opts =
   let arr =
@@ -74,31 +81,42 @@ let render element dom_elem =
   Reactjs.reactDOM##render element dom_elem
 
 let create_class class_opts = let open Js.Opt in
-  let comp = (object%js (self)
-    method render = class_opts.render self
-    method getInitialState =
-      map (option class_opts.initial_state) (fun f -> f self)
-    method getDefaultProps =
-      map (option class_opts.default_props) (fun f -> f self)
-    val mutable propTypes = Js.null
-    val mutable mixins = Js.null
-    val mutable statics = Js.null
-    val mutable displayName = Js.string "NOT_SET_YET"
+  let comp = (object%js
+    val mutable render = Js.null
+    val mutable getInitialState = Js.null
+    val mutable getDefaultProps = Js.null
+    (* val mutable propTypes = Js.null *)
+    (* val mutable mixins = Js.null *)
+    (* val mutable statics = Js.null *)
+    val displayName = Js.string class_opts.display_name
     val mutable componentWillMount = Js.null
     val mutable componentDidMount = Js.null
   end)
   in
   (* Yay *)
-  comp##.displayName := class_opts.display_name comp |> Js.string;
+
+  comp##.render :=
+    Js.wrap_meth_callback (fun this -> class_opts.render this)
+    |> return;
 
   comp##.componentWillMount :=
-    Js.Opt.return (
-      Js.wrap_meth_callback
-        (fun _ -> map (option class_opts.component_will_mount) (fun f -> f comp)));
+    Js.wrap_meth_callback
+      (fun this -> map (option class_opts.component_will_mount) (fun f -> f this))
+    |> return;
 
   comp##.componentDidMount :=
-    Js.Opt.return (
-      Js.wrap_meth_callback
-        (fun _ -> map (option class_opts.component_did_mount) (fun f -> f comp)));
+    Js.wrap_meth_callback
+      (fun this -> map (option class_opts.component_did_mount) (fun f -> f this))
+    |> return;
+
+  comp##.getInitialState :=
+    Js.wrap_meth_callback
+      (fun this -> map (option class_opts.initial_state) (fun f -> f this))
+    |> return;
+
+  comp##.getDefaultProps :=
+    Js.wrap_meth_callback
+      (fun this -> map (option class_opts.default_props) (fun f -> f this))
+    |> return;
 
   Reactjs.react##createClass comp
