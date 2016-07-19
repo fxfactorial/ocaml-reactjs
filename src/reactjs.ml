@@ -63,12 +63,18 @@ and react = object
   (* method _PropTypes *)
 
   method createClass :
-    (* Could this be in a react component *)
+    (* Think I need to use recursive modules in order to separate this
+       out as a type *)
     <
       render : react_element Js.t Js.meth;
-      displayName : Js.js_string Js.t Js.readonly_prop;
-      getInitialState : 'a Js.t Js.Opt.t Js.meth;
-      getDefaultProps : 'a Js.t Js.Opt.t Js.meth;
+      getInitialState : 'initial_state Js.t Js.Opt.t Js.meth;
+      getDefaultProps : 'default_props Js.t Js.Opt.t Js.meth;
+      propTypes : 'prop_types_validator Js.t Js.Opt.t Js.prop;
+      mixins : 'components Js.t Js.js_array Js.t Js.Opt.t Js.prop;
+      statics : 'static_methods Js.t Js.Opt.t Js.prop;
+      displayName : Js.js_string Js.t Js.prop;
+      componentWillMount: ('this, unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
+      componentDidMount: ('this, unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop
     >
 
       Js.t ->

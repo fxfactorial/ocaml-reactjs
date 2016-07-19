@@ -21,3 +21,5 @@ setup.data
 setup.log
 T
 node_modules
+examples_high_level/tutorial_high_level
+examples_high_level/tutorial_high_level.js
