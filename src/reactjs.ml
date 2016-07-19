@@ -64,10 +64,14 @@ and react = object
 
   method createClass :
     (* Could this be in a react component *)
-    <displayName : Js.js_string Js.t Js.Opt.t Js.readonly_prop;
-     getInitialState : 'a Js.t Js.Opt.t Js.meth;
-     getDefaultProps : 'a Js.t Js.Opt.t Js.meth;
-     render : react_element Js.t Js.meth> Js.t ->
+    <
+      render : react_element Js.t Js.meth;
+      displayName : Js.js_string Js.t Js.readonly_prop;
+      getInitialState : 'a Js.t Js.Opt.t Js.meth;
+      getDefaultProps : 'a Js.t Js.Opt.t Js.meth;
+    >
+
+      Js.t ->
     react_class Js.t Js.meth
 
   method createFactory_withString :

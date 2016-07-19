@@ -33,3 +33,4 @@ true: annot, bin_annot
 <src/high_level/*.ml{,i,y}>: use_reactjs
 # OASIS_STOP
 "examples": not_hygienic
+"examples_high_level": not_hygienic

@@ -35,6 +35,20 @@ Library high_level
   ByteOpt: -g -w +a-4-40..42-44-45-48
   BuildDepends: reactjs
 
+Library ppx
+  FindlibName: ppx
+  FindlibParent: reactjs
+  Path: src/ppx
+  Modules: Ppx_reactjs
+  CompiledObject: byte
+  BuildDepends:
+    compiler-libs,
+    compiler-libs.common,
+    reactjs.high_level
+  XMETADescription: New-style (ppx) syntax extension
+  XMETARequires:    reactjs.high_level
+  XMETAExtraLines:  ppx = "ppx_reactjs"
+
 SourceRepository master
   Type:     git
   Location: https://github.com/fxfactorial/ocaml-reactjs.git

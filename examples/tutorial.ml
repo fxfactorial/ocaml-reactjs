@@ -1,7 +1,7 @@
 let commentBox =
   Reactjs.react##createClass
     (object%js(self)
-      val displayName = Js.string "CommentBox" |> Js.Opt.return
+      val displayName = Js.string "CommentBox"
       method render =
         Reactjs.react##createElement_withPropsAndSingleText
           (Js.string "div")
