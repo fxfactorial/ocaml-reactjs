@@ -153,23 +153,30 @@ type ('this,
       'prev_state,
       'props,
       'mixin) class_spec =
-  { render: 'this Js.t -> Low_level_bindings.react_element Js.t; [@main]
-        initial_state : ('this Js.t -> 'initial_state Js.t) option;
-      default_props : ('this Js.t -> 'default_props Js.t) option;
-      prop_types : 'prop_types Js.t option;
-      mixins : 'mixin Js.t list option;
-      statics : 'static_functions Js.t option;
-      display_name : string option;
-      component_will_mount : ('this Js.t -> unit) option;
-      component_did_mount : ('this Js.t -> unit) option;
-      component_will_receive_props : ('this Js.t -> 'next_props Js.t -> unit) option;
-      should_component_update :
-        ('this Js.t -> 'next_props Js.t -> 'next_state Js.t -> bool Js.t) option;
-      component_will_update :
-        ('this Js.t -> 'next_props Js.t -> 'next_state Js.t -> unit) option;
-      component_did_update :
-        ('this Js.t -> 'prev_props Js.t -> 'prev_state Js.t -> unit) option;
-      component_will_unmount : ('this Js.t -> unit) option;} [@@deriving make]
+  { render: this:'this Js.t -> Low_level_bindings.react_element Js.t; [@main]
+    initial_state : (this:'this Js.t -> 'initial_state Js.t) option;
+    default_props : (this:'this Js.t -> 'default_props Js.t) option;
+    prop_types : 'prop_types Js.t option;
+    mixins : 'mixin Js.t list option;
+    statics : 'static_functions Js.t option;
+    display_name : string option;
+    component_will_mount : (this:'this Js.t -> unit) option;
+    component_did_mount : (this:'this Js.t -> unit) option;
+    component_will_receive_props :
+      (this:'this Js.t -> next_props:'next_props Js.t -> unit) option;
+    should_component_update :
+      (this:'this Js.t ->
+       next_prop:'next_props Js.t ->
+       next_state:'next_state Js.t -> bool Js.t) option;
+    component_will_update :
+      (this:'this Js.t ->
+       next_prop:'next_props Js.t ->
+       next_state:'next_state Js.t -> unit) option;
+    component_did_update :
+      (this:'this Js.t ->
+       prev_prop:'prev_props Js.t ->
+       prev_state:'prev_state Js.t -> unit) option;
+    component_will_unmount : (this:'this Js.t -> unit) option;} [@@deriving make]
 
 let create_element
     elem_name element_opts (children : children) :
@@ -224,7 +231,7 @@ let create_class class_opts = let open Js.Opt in
   in
   (* Yay *)
   comp##.render :=
-    Js.wrap_meth_callback (fun this -> class_opts.render this)
+    Js.wrap_meth_callback (fun this -> class_opts.render ~this)
     |> return;
 
   (* comp##.getInitialState := *)

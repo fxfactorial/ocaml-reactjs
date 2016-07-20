@@ -1,6 +1,6 @@
 let example_application =
   Reactjs.make_class_spec
-    (fun this ->
+    (fun ~this ->
        let elapsed = Js.math##round this##.props##.elapsed /. 100.0 in
        let seconds = elapsed /. 10.0 in
        let message = Printf.sprintf
@@ -22,5 +22,5 @@ let _ =
           in
           Reactjs.render with_new_props (Reactjs.get_elem ~id:"container")
         with Js.Error e ->
-          Firebug.console##log e;
+          Firebug.console##log e
       ) ~every:100.0

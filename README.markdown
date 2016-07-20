@@ -14,7 +14,7 @@ This example should be familiar.
 ```ocaml
 let example_application =
   Reactjs.make_class_spec
-    (fun this ->
+    (fun ~this ->
        let elapsed = Js.math##round this##.props##.elapsed /. 100.0 in
        let seconds = elapsed /. 10.0 in
        let message = Printf.sprintf
