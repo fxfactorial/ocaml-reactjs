@@ -93,139 +93,7 @@ module Low_level_bindings = struct
 
     method createFactory_withString :
       Js.js_string Js.t -> factory_function Js.t Js.meth
-    (* method createMixin *)
-    (* method _DOM a: [Function: bound ], *)
-    (* abbr: [Function: bound ], *)
-    (* address: [Function: bound ], *)
-    (* area: [Function: bound ], *)
-    (* article: [Function: bound ], *)
-    (* aside: [Function: bound ], *)
-    (* audio: [Function: bound ], *)
-    (* b: [Function: bound ], *)
-    (* base: [Function: bound ], *)
-    (* bdi: [Function: bound ], *)
-    (* bdo: [Function: bound ], *)
-    (* big: [Function: bound ], *)
-    (* blockquote: [Function: bound ], *)
-    (* body: [Function: bound ], *)
-    (* br: [Function: bound ], *)
-    (* button: [Function: bound ], *)
-    (* canvas: [Function: bound ], *)
-    (* caption: [Function: bound ], *)
-    (* cite: [Function: bound ], *)
-    (* code: [Function: bound ], *)
-    (* col: [Function: bound ], *)
-    (* colgroup: [Function: bound ], *)
-    (* data: [Function: bound ], *)
-    (* datalist: [Function: bound ], *)
-    (* dd: [Function: bound ], *)
-    (* del: [Function: bound ], *)
-    (* details: [Function: bound ], *)
-    (* dfn: [Function: bound ], *)
-    (* dialog: [Function: bound ], *)
-    (* div: [Function: bound ], *)
-    (* dl: [Function: bound ], *)
-    (* dt: [Function: bound ], *)
-    (* em: [Function: bound ], *)
-    (* embed: [Function: bound ], *)
-    (* fieldset: [Function: bound ], *)
-    (* figcaption: [Function: bound ], *)
-    (* figure: [Function: bound ], *)
-    (* footer: [Function: bound ], *)
-    (* form: [Function: bound ], *)
-    (* h1: [Function: bound ], *)
-    (* h2: [Function: bound ], *)
-    (* h3: [Function: bound ], *)
-    (* h4: [Function: bound ], *)
-    (* h5: [Function: bound ], *)
-    (* h6: [Function: bound ], *)
-    (* head: [Function: bound ], *)
-    (* header: [Function: bound ], *)
-    (* hgroup: [Function: bound ], *)
-    (* hr: [Function: bound ], *)
-    (* html: [Function: bound ], *)
-    (* i: [Function: bound ], *)
-    (* iframe: [Function: bound ], *)
-    (* img: [Function: bound ], *)
-    (* input: [Function: bound ], *)
-    (* ins: [Function: bound ], *)
-    (* kbd: [Function: bound ], *)
-    (* keygen: [Function: bound ], *)
-    (* label: [Function: bound ], *)
-    (* legend: [Function: bound ], *)
-    (* li: [Function: bound ], *)
-    (* link: [Function: bound ], *)
-    (* main: [Function: bound ], *)
-    (* map: [Function: bound ], *)
-    (* mark: [Function: bound ], *)
-    (* menu: [Function: bound ], *)
-    (* menuitem: [Function: bound ], *)
-    (* meta: [Function: bound ], *)
-    (* meter: [Function: bound ], *)
-    (* nav: [Function: bound ], *)
-    (* noscript: [Function: bound ], *)
-    (* object: [Function: bound ], *)
-    (* ol: [Function: bound ], *)
-    (* optgroup: [Function: bound ], *)
-    (* option: [Function: bound ], *)
-    (* output: [Function: bound ], *)
-    (* p: [Function: bound ], *)
-    (* param: [Function: bound ], *)
-    (* picture: [Function: bound ], *)
-    (* pre: [Function: bound ], *)
-    (* progress: [Function: bound ], *)
-    (* q: [Function: bound ], *)
-    (* rp: [Function: bound ], *)
-    (* rt: [Function: bound ], *)
-    (* ruby: [Function: bound ], *)
-    (* s: [Function: bound ], *)
-    (* samp: [Function: bound ], *)
-    (* script: [Function: bound ], *)
-    (* section: [Function: bound ], *)
-    (* select: [Function: bound ], *)
-    (* small: [Function: bound ], *)
-    (* source: [Function: bound ], *)
-    (* span: [Function: bound ], *)
-    (* strong: [Function: bound ], *)
-    (* style: [Function: bound ], *)
-    (* sub: [Function: bound ], *)
-    (* summary: [Function: bound ], *)
-    (* sup: [Function: bound ], *)
-    (* table: [Function: bound ], *)
-    (* tbody: [Function: bound ], *)
-    (* td: [Function: bound ], *)
-    (* textarea: [Function: bound ], *)
-    (* tfoot: [Function: bound ], *)
-    (* th: [Function: bound ], *)
-    (* thead: [Function: bound ], *)
-    (* time: [Function: bound ], *)
-    (* title: [Function: bound ], *)
-    (* tr: [Function: bound ], *)
-    (* track: [Function: bound ], *)
-    (* u: [Function: bound ], *)
-    (* ul: [Function: bound ], *)
-    (* var: [Function: bound ], *)
-    (* video: [Function: bound ], *)
-    (* wbr: [Function: bound ], *)
-    (* circle: [Function: bound ], *)
-    (* clipPath: [Function: bound ], *)
-    (* defs: [Function: bound ], *)
-    (* ellipse: [Function: bound ], *)
-    (* g: [Function: bound ], *)
-    (* image: [Function: bound ], *)
-    (* line: [Function: bound ], *)
-    (* linearGradient: [Function: bound ], *)
-    (* mask: [Function: bound ], *)
-    (* path: [Function: bound ], *)
-    (* pattern: [Function: bound ], *)
-    (* polygon: [Function: bound ], *)
-    (* polyline: [Function: bound ], *)
-    (* radialGradient: [Function: bound ], *)
-    (* rect: [Function: bound ], *)
-    (* stop: [Function: bound ], *)
-    (* svg: [Function: bound ], *)
-    (* text: [Function: bound ], *)
-    (*       tspan: [Function: bound ] *)
+
     method version : Js.js_string Js.t Js.readonly_prop
     (* method __spread *)
     method _DOM : 'a Js.t Js.readonly_prop
@@ -407,41 +275,44 @@ let create_class class_opts = let open Js.Opt in
 
   Low_level_bindings.react##createClass comp
 
-(* class react_class class_spec = object *)
-
-(*   val js_object = create_class class_spec *)
-
-(*   method unsafe_react_class = js_object *)
-
-(* end *)
-
-(* class react_elem react_class = object *)
-
-(*   val js_object = create_element_from_class react_class *)
-
-(*   method unsafe_react_elem = js_object *)
-
-(* end *)
-
-(* let render (element : react_elem) dom_elem = *)
-(*   Low_level_bindings.reactDOM##render element#unsafe_react_elem dom_elem *)
-
 let render element dom_elem =
   Low_level_bindings.reactDOM##render element dom_elem
 
 module DOM = struct
 
-  (* type tag = [`p | `div] [@@deriving show] *)
+  type tag = [`abbr | `address | `area | `article | `aside | `audio |
+              `b | `base | `bdi | `bdo | `big | `blockquote | `body |
+              `br | `button | `canvas | `caption | `cite | `code |
+              `col | `colgroup | `data | `datalist | `dd | `del |
+              `details | `dfn | `dialog | `div | `dl | `dt | `em |
+              `emded | `fieldset | `figcaption | `figure | `footer |
+              `form | `h1 | `h2 | `h3 | `h5 | `h6 | `head | `header |
+              `hgroup | `hr | `html | `i | `iframe | `img | `input |
+              `ins | `kbd | `keygen | `label | `legend | `li | `link |
+              `main | `map | `mark | `menu | `menuitem | `meta | `meter |
+              `nav | `noscript |
+              `object_ [@printer fun fmt -> fprintf fmt "object"] |
+              `ol | `optgroup | `option | `output | `p | `param | `picture |
+              `pre | `progress | `q | `rp | `rt | `ruby | `s | `samp |
+              `script | `section | `select | `small | `source | `span |
+              `strong | `style | `sub | `summary | `sup | `table |
+              `tbody | `td | `textarea | `tfoot | `th | `thead |
+              `time | `title | `tr | `track | `u | `ul | `var | `video |
+              `wbr | `circle | `clipPath | `defs | `ellipse | `g |
+              `image | `line | `linearGradient | `mask | `path |
+              `pattern | `polygon | `polyline | `radialGradient |
+              `rect | `stop | `svg | `text | `tspan ] [@@deriving show]
 
-  (* let without_tick ~tag:tag tag_f = *)
-  (*   (tag_f tag |> Js.string)##substring_toEnd 1 |> Js.to_string *)
+  let without_tick tag =
+    (tag |> Js.string)##substring_toEnd 1 |> Js.to_string
 
-
-  let p :
-    ?elem_spec:element_spec
-    -> children
-    -> Low_level_bindings.react_element Js.t =
-    fun ?(elem_spec=make_element_spec ()) c ->
+  let make :
+    ?elem_spec:element_spec ->
+    tag:tag ->
+    children ->
+    Low_level_bindings.react_element Js.t =
+    fun ?(elem_spec=make_element_spec ()) ~tag c ->
+      let elem_name = show_tag tag |> without_tick in
       let open Js.Opt in
       let spec_obj =
         object%js
@@ -456,13 +327,12 @@ module DOM = struct
       in
       Js.Unsafe.meth_call
         Low_level_bindings.react##._DOM
-        "p"
+        elem_name
         (Array.append
            [|
              Js.Unsafe.inject spec_obj;
            |]
            arr
         )
-
 
 end

@@ -24,13 +24,12 @@
 
 *)
 
-let example_application =
-  Reactjs.with_default_options
-    ~render:(fun this ->
-        let elapsed = Js.math##round this##.props##.elapsed /. 100.0 in
-        let seconds = elapsed /. 10.0 in
-        let message = Printf.sprintf
-            "React has been successfully running for %f seconds" seconds
-        in
-        Reactjs.DOM.p message
-      ) "example application"
+let example_application = Reactjs.make_class_spec
+    (fun this ->
+       let elapsed = Js.math##round this##.props##.elapsed /. 100.0 in
+       let seconds = elapsed /. 10.0 in
+       let message = Printf.sprintf
+           "React has been successfully running for %f seconds" seconds
+       in
+       Reactjs.DOM.make ~tag:`p (`Text_nodes [message])
+    )

@@ -37,9 +37,9 @@ let commentBox =
       )
     ~display_name:"CommentBox"
     (fun _ ->
-       DOM.p (`Text_nodes
-                ["Hello, world!";
-                 "I am a Comment box in a p tag"]))
+       DOM.make ~tag:`p (`Text_nodes
+                             ["Hello, world!";
+                              "I am a Comment box in a p tag"]))
   |> create_class
 
 let () =

@@ -11,7 +11,6 @@ all: tutorial_high_level
 tutorial_high_level:tutorial.ml
 	ocamlfind ocamlc -g -package ${pkgs} -linkpkg $< -o $@
 	js_of_ocaml ${js_debug} $@ -o $@.js
-	# node $@.js
 
 clean:;@rm -f *.cmi *.cmo *.cmt a.out *.js tutorial_high_level
 
