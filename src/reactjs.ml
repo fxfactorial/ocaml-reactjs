@@ -88,8 +88,9 @@ module Low_level_bindings = struct
           ('this component_api, unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
         componentDidMount :
           ('this component_api, unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
-        (* componentWillReceiveProps : *)
-        (*   ('this Js.t, 'next_props Js.t -> unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop; *)
+        componentWillReceiveProps :
+          ('this component_api,
+           'next_props Js.t -> unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
         (* shouldComponentUpdate : *)
         (*   ('this Js.t, 'next_props Js.t -> 'next_state Js.t -> bool Js.t Js.Opt.t) *)
         (*     Js.meth_callback Js.Opt.t Js.prop; *)
@@ -223,7 +224,7 @@ let create_class class_opts = let open Js.Opt in
     (* (\* Lifecycle Methods *\) *)
     val mutable componentWillMount = Js.null
     val mutable componentDidMount = Js.null
-    (* val mutable componentWillReceiveProps = Js.null *)
+    val mutable componentWillReceiveProps = Js.null
     (* val mutable shouldComponentUpdate = Js.null *)
     (* val mutable componentWillUpdate = Js.null *)
     (* val mutable componentDidUpdate = Js.null *)
@@ -252,16 +253,16 @@ let create_class class_opts = let open Js.Opt in
 
   comp##.componentDidMount :=
     Js.wrap_meth_callback
-      (fun this -> map (option class_opts.component_did_mount) (fun f -> f this))
+      (fun this -> map (option class_opts.component_did_mount) (fun f -> f ~this))
     |> return;
 
-  (* comp##.componentWillReceiveProps := *)
-  (*   Js.wrap_meth_callback *)
-  (*     (fun this next_props -> *)
-  (*        map *)
-  (*          (option class_opts.component_will_receive_props) *)
-  (*          (fun f -> f this next_props)) *)
-  (*   |> return; *)
+  comp##.componentWillReceiveProps :=
+    Js.wrap_meth_callback
+      (fun this next_props ->
+         map
+           (option class_opts.component_will_receive_props)
+           (fun f -> f ~this ~next_props))
+    |> return;
 
   (* comp##.shouldComponentUpdate := *)
   (*   Js.wrap_meth_callback *)
