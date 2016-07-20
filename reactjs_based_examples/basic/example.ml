@@ -8,6 +8,7 @@ let example_application =
         print_endline "Default props called";
         object%js end
       )
+    ~component_will_mount:(fun ~this -> print_endline "Component will mount")
     (fun ~this ->
        let elapsed = Js.math##round this##.props##.elapsed /. 100.0 in
        let seconds = elapsed /. 10.0 in

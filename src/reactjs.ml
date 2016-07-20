@@ -84,8 +84,8 @@ module Low_level_bindings = struct
         (* statics : 'static_functions Js.t Js.Opt.t Js.readonly_prop; *)
         (* displayName : Js.js_string Js.t Js.Opt.t Js.readonly_prop; *)
         (* (\* Lifecycle Methods *\) *)
-        (* componentWillMount : *)
-        (*   ('this component_api, unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop; *)
+        componentWillMount :
+          ('this component_api, unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
         (* componentDidMount : ('this Js.t, unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop; *)
         (* componentWillReceiveProps : *)
         (*   ('this Js.t, 'next_props Js.t -> unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop; *)
@@ -220,7 +220,7 @@ let create_class class_opts = let open Js.Opt in
     (* val statics = map (option class_opts.statics) (fun s -> s) *)
     (* val displayName = map (option class_opts.display_name) Js.string *)
     (* (\* Lifecycle Methods *\) *)
-    (* val mutable componentWillMount = Js.null *)
+    val mutable componentWillMount = Js.null
     (* val mutable componentDidMount = Js.null *)
     (* val mutable componentWillReceiveProps = Js.null *)
     (* val mutable shouldComponentUpdate = Js.null *)
@@ -244,10 +244,10 @@ let create_class class_opts = let open Js.Opt in
       (fun this -> map (option class_opts.default_props) (fun f -> f ~this))
     |> return;
 
-  (* comp##.componentWillMount := *)
-  (*   Js.wrap_meth_callback *)
-  (*     (fun this -> map (option class_opts.component_will_mount) (fun f -> f this)) *)
-  (*   |> return; *)
+  comp##.componentWillMount :=
+    Js.wrap_meth_callback
+      (fun this -> map (option class_opts.component_will_mount) (fun f -> f ~this))
+    |> return;
 
   (* comp##.componentDidMount := *)
   (*   Js.wrap_meth_callback *)
