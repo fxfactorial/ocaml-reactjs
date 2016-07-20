@@ -80,21 +80,8 @@ module Low_level_bindings = struct
        statics : 'static_functions Js.t Js.Opt.t Js.readonly_prop;
        displayName : Js.js_string Js.t Js.readonly_prop;
        (* Lifecycle Methods *)
-
        componentWillMount :
          ('this component_api, unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
-
-         (* ('this Js.t, unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop; *)
-
-       (*   ((('this, 'prev_state, 'prev_prop, *)
-       (*      'with_keys_to_update, 'component) component_api as 'com) Js.t, *)
-       (*    unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop; *)
-
-       (* componentWillMount : *)
-       (*   ((('a, 'b, 'c, 'd, 'e) component_api as 'f) Js.t, *)
-
-       (*    unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop; *)
-
        componentDidMount : ('this Js.t, unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
        componentWillReceiveProps :
          ('this Js.t, 'next_props Js.t -> unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;

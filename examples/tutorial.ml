@@ -5,6 +5,7 @@ let commentBox =
     ~default_props:(fun _ ->
         object%js
           val some_words = Js.string "These are some things I wanted to pass Around"
+          method call_me = print_endline "Function inside the prop called"
         end
       )
     ~component_will_mount:(fun this ->
@@ -27,9 +28,13 @@ let commentBox =
 
       )
     ~component_did_mount:(fun this ->
+
         if this##isMounted |> Js.to_bool
         then print_endline "Was mounted"
         else print_endline "Was not mounted";
+
+        this##.props##call_me;
+
       )
     ~render:(fun _ ->
         create_element
