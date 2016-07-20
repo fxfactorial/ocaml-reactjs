@@ -21,14 +21,6 @@ module Low_level_bindings = struct
       (try require_module "react-dom" with _ -> undef),
       (try require_module "react-dom-server" with _ -> undef)
 
-  (* type ('this, 'prev_state, 'prev_prop, 'with_keys_to_update, 'component, 'foo) component_api = *)
-  (*   (<setState : *)
-  (*       (('prev_state Js.t -> *)
-  (*         'prev_prop Js.t -> *)
-  (*         'with_keys_to_update Js.t) -> *)
-  (*        ('this Js.t, (unit -> unit)) Js.meth_callback -> *)
-  (*        unit) Js.meth; .. > as 'component) Js.t *)
-
   type 'a component_api = (<isMounted : bool Js.t Js.meth; .. > as 'a) Js.t
 
   class type react_dom_server = object
@@ -236,9 +228,14 @@ module Low_level_bindings = struct
     (*       tspan: [Function: bound ] *)
     method version : Js.js_string Js.t Js.readonly_prop
     (* method __spread *)
+    method _DOM : 'a Js.t Js.readonly_prop
   end
 
   and react_element = object
+
+    method type_ : Js.js_string Js.t Js.readonly_prop
+    method key : 'a Js.t Js.Opt.t Js.prop
+    (* method ref : react_element_ref Js.t Js.Opt.t Js.prop *)
 
   end
 
@@ -263,11 +260,10 @@ let debug thing field =
   Firebug.console##log
     (Js.Unsafe.(meth_call (get thing field) "toString" [||]))
 
-type element_opts =
-  { element_name : string;
-    class_name: string;
-    children: [`Text_nodes of string list
-              | `React_children of Low_level_bindings.react_element Js.t list ]; }
+type element_spec = { class_name: string option; } [@@deriving make]
+
+type children = [`Text_nodes of string list
+                | `Kids of Low_level_bindings.react_element Js.t list ]
 
 type ('this,
       'initial_state,
@@ -281,35 +277,38 @@ type ('this,
       'props,
       'mixin) class_spec =
   { render: 'this Js.t -> Low_level_bindings.react_element Js.t; [@main]
-    initial_state : ('this Js.t -> 'initial_state Js.t) option;
-    default_props : ('this Js.t -> 'default_props Js.t) option;
-    prop_types : 'prop_types Js.t option;
-    mixins : 'mixin Js.t list option;
-    statics : 'static_functions Js.t option;
-    display_name : string option;
-    component_will_mount : ('this Js.t -> unit) option;
-    component_did_mount : ('this Js.t -> unit) option;
-    component_will_receive_props : ('this Js.t -> 'next_props Js.t -> unit) option;
-    should_component_update :
-      ('this Js.t -> 'next_props Js.t -> 'next_state Js.t -> bool Js.t) option;
-    component_will_update :
-      ('this Js.t -> 'next_props Js.t -> 'next_state Js.t -> unit) option;
-    component_did_update :
-      ('this Js.t -> 'prev_props Js.t -> 'prev_state Js.t -> unit) option;
-    component_will_unmount : ('this Js.t -> unit) option;} [@@deriving make]
+        initial_state : ('this Js.t -> 'initial_state Js.t) option;
+      default_props : ('this Js.t -> 'default_props Js.t) option;
+      prop_types : 'prop_types Js.t option;
+      mixins : 'mixin Js.t list option;
+      statics : 'static_functions Js.t option;
+      display_name : string option;
+      component_will_mount : ('this Js.t -> unit) option;
+      component_did_mount : ('this Js.t -> unit) option;
+      component_will_receive_props : ('this Js.t -> 'next_props Js.t -> unit) option;
+      should_component_update :
+        ('this Js.t -> 'next_props Js.t -> 'next_state Js.t -> bool Js.t) option;
+      component_will_update :
+        ('this Js.t -> 'next_props Js.t -> 'next_state Js.t -> unit) option;
+      component_did_update :
+        ('this Js.t -> 'prev_props Js.t -> 'prev_state Js.t -> unit) option;
+      component_will_unmount : ('this Js.t -> unit) option;} [@@deriving make]
 
-let create_element element_opts =
-  let arr =
-    (match element_opts.children with
-     | `Text_nodes s -> List.map Js.string s
-     | _ -> [])
-    |> Array.of_list |> Array.map Js.Unsafe.inject
+let create_element
+    elem_name element_opts (children : children) :
+  Low_level_bindings.react_element Js.t =
+  let open Js.Unsafe in
+  let arr = (match children with
+      | `Text_nodes s -> List.map Js.string s
+      | _ -> [])
+            |> Array.of_list |> Array.map inject
   in
   (Array.append
      [|
-       Js.Unsafe.inject ((Js.string element_opts.element_name));
-       Js.Unsafe.inject (object%js(self)
-         val className = Js.string element_opts.class_name
+       inject ((Js.string elem_name));
+       inject (object%js(self)
+         val className =
+           Js.Opt.(map (option element_opts.class_name) Js.string)
        end);
      |]
      arr
@@ -330,7 +329,7 @@ let create_class class_opts = let open Js.Opt in
     val mixins =
       map (option class_opts.mixins) (fun m -> Array.of_list m |> Js.array)
     val statics = map (option class_opts.statics) (fun s -> s)
-    val displayName = map (option class_opts.display_name) (fun s -> Js.string s)
+    val displayName = map (option class_opts.display_name) Js.string
     (* Lifecycle Methods *)
     val mutable componentWillMount = Js.null
     val mutable componentDidMount = Js.null
@@ -432,8 +431,38 @@ let render element dom_elem =
 
 module DOM = struct
 
-  type tag = [`p | `div] [@@deriving show]
-  (* let string_of_tag =  *)
+  (* type tag = [`p | `div] [@@deriving show] *)
+
+  (* let without_tick ~tag:tag tag_f = *)
+  (*   (tag_f tag |> Js.string)##substring_toEnd 1 |> Js.to_string *)
+
+
+  let p :
+    ?elem_spec:element_spec
+    -> children
+    -> Low_level_bindings.react_element Js.t =
+    fun ?(elem_spec=make_element_spec ()) c ->
+      let open Js.Opt in
+      let spec_obj =
+        object%js
+          val className = map (option elem_spec.class_name) Js.string
+        end
+      in
+      let arr =
+        (match c with
+         | `Text_nodes s -> List.map Js.string s
+         | _ -> [])
+        |> Array.of_list |> Array.map Js.Unsafe.inject
+      in
+      Js.Unsafe.meth_call
+        Low_level_bindings.react##._DOM
+        "p"
+        (Array.append
+           [|
+             Js.Unsafe.inject spec_obj;
+           |]
+           arr
+        )
 
 
 end

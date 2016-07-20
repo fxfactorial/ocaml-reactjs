@@ -37,10 +37,9 @@ let commentBox =
       )
     ~display_name:"CommentBox"
     (fun _ ->
-        create_element
-          {element_name = "div";
-           class_name = "commentBox";
-           children = `Text_nodes ["Hello, world! I am a CommentBox"]})
+       DOM.p (`Text_nodes
+                ["Hello, world!";
+                 "I am a Comment box in a p tag"]))
   |> create_class
 
 let () =
