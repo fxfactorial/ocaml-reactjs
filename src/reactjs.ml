@@ -74,36 +74,38 @@ module Low_level_bindings = struct
     method createClass :
       <
         render :
-          ('this Js.t, react_element Js.t) Js.meth_callback Js.Opt.t Js.prop;
+          ('this Js.t, react_element Js.t) Js.meth_callback Js.readonly_prop;
         getInitialState :
-          ('this Js.t, 'initial_state Js.t Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
+          ('this Js.t,
+           'initial_state Js.t Js.Opt.t) Js.meth_callback Js.readonly_prop;
         getDefaultProps :
-          ('this Js.t, 'default_props Js.t Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
-        (* propTypes : 'props_validator Js.t Js.Opt.t Js.readonly_prop; *)
-        (* mixins : 'mixin Js.t Js.js_array Js.t Js.Opt.t Js.readonly_prop; *)
-        (* statics : 'static_functions Js.t Js.Opt.t Js.readonly_prop; *)
-        (* displayName : Js.js_string Js.t Js.Opt.t Js.readonly_prop; *)
-        (* (\* Lifecycle Methods *\) *)
+          ('this Js.t,
+           'default_props Js.t Js.Optdef.t) Js.meth_callback Js.readonly_prop;
+        propTypes : 'props_validator Js.t Js.Optdef.t Js.readonly_prop;
+        mixins : 'mixin Js.t Js.js_array Js.t Js.Optdef.t Js.readonly_prop;
+        statics : 'static_functions Js.t Js.Optdef.t Js.readonly_prop;
+        displayName : Js.js_string Js.t Js.Optdef.t Js.readonly_prop;
+        (* Lifecycle Methods *)
         componentWillMount :
-          ('this component_api, unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
+          ('this component_api, unit Js.Optdef.t) Js.meth_callback Js.readonly_prop;
         componentDidMount :
-          ('this component_api, unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
+          ('this component_api, unit Js.Optdef.t) Js.meth_callback Js.readonly_prop;
         componentWillReceiveProps :
           ('this component_api,
-           'next_props Js.t -> unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
+           'next_props Js.t -> unit Js.Optdef.t) Js.meth_callback Js.readonly_prop;
         shouldComponentUpdate :
           ('this component_api,
-           'next_props Js.t -> 'next_state Js.t -> bool Js.t Js.Opt.t)
-            Js.meth_callback Js.Opt.t Js.prop;
+           'next_props Js.t -> 'next_state Js.t -> bool Js.t Js.Optdef.t)
+            Js.meth_callback Js.readonly_prop;
         componentWillUpdate :
-          ('this Js.t, 'next_prop Js.t -> 'next_state Js.t -> unit Js.Opt.t)
-            Js.meth_callback Js.Opt.t Js.prop;
+          ('this Js.t, 'next_prop Js.t -> 'next_state Js.t -> unit Js.Optdef.t)
+            Js.meth_callback Js.readonly_prop;
         componentDidUpdate :
           ('this Js.t,
-           'prev_prop Js.t -> 'prev_state Js.t -> unit Js.Opt.t)
-            Js.meth_callback Js.Opt.t Js.prop;
+           'prev_prop Js.t -> 'prev_state Js.t -> unit Js.Optdef.t)
+            Js.meth_callback Js.readonly_prop;
         componentWillUnmount :
-          ('this Js.t, unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
+          ('this Js.t, unit Js.Optdef.t) Js.meth_callback Js.readonly_prop;
       > Js.t ->
       react_class Js.t Js.meth
 
@@ -156,7 +158,9 @@ type ('this,
       'prev_state,
       'props,
       'mixin) class_spec =
-  { render: this:'this Js.t -> Low_level_bindings.react_element Js.t; [@main]
+  { render:
+      this:'this Js.t ->
+      Low_level_bindings.react_element Js.t; [@main]
     initial_state : (this:'this Js.t -> 'initial_state Js.t) option;
     default_props : (this:'this Js.t -> 'default_props Js.t) option;
     prop_types : 'prop_types Js.t option;
@@ -168,7 +172,9 @@ type ('this,
     component_will_receive_props :
       (this:'this Js.t -> next_prop:'next_props Js.t -> unit) option;
     should_component_update :
-      (this:'this Js.t -> next_prop:'next_props Js.t -> next_state:'next_state Js.t -> bool Js.t) option;
+      (this:'this Js.t ->
+       next_prop:'next_props Js.t ->
+       next_state:'next_state Js.t -> bool Js.t) option;
     component_will_update :
       (this:'this Js.t ->
        next_prop:'next_props Js.t ->
@@ -177,7 +183,8 @@ type ('this,
       (this:'this Js.t ->
        prev_prop:'prev_props Js.t ->
        prev_state:'prev_state Js.t -> unit) option;
-    component_will_unmount : (this:'this Js.t -> unit) option;} [@@deriving make]
+      component_will_unmount : (this:'this Js.t -> unit) option;}
+[@@deriving make]
 
 let create_element
     elem_name element_opts (children : children) :
@@ -209,91 +216,49 @@ let create_factory :
   let call_me = Low_level_bindings.react##createFactory c in
   fun ~props -> Js.Unsafe.fun_call call_me [|Js.Unsafe.inject props|]
 
-let create_class class_opts = let open Js.Opt in
+let create_class class_opts = let open Js.Optdef in
   let comp = (object%js
     (* Component Specifications *)
-    val mutable render = Js.null
-    val mutable getInitialState = Js.null
-    val mutable getDefaultProps = Js.null
-    (* val propTypes = map (option class_opts.prop_types) (fun s -> s) *)
-    (* val mixins = *)
-    (*   map (option class_opts.mixins) (fun m -> Array.of_list m |> Js.array) *)
-    (* val statics = map (option class_opts.statics) (fun s -> s) *)
-    (* val displayName = map (option class_opts.display_name) Js.string *)
-    (* (\* Lifecycle Methods *\) *)
-    val mutable componentWillMount = Js.null
-    val mutable componentDidMount = Js.null
-    val mutable componentWillReceiveProps = Js.null
-    val mutable shouldComponentUpdate = Js.null
-    val mutable componentWillUpdate = Js.null
-    val mutable componentDidUpdate = Js.null
-    val mutable componentWillUnmount = Js.null
+    val render = Js.wrap_meth_callback (fun this -> class_opts.render ~this)
+    val getInitialState = (fun this -> let open Js.Opt in
+        map (option class_opts.initial_state) (fun f -> f ~this)
+      ) |> Js.wrap_meth_callback
+    val getDefaultProps = (fun this ->
+        map (option class_opts.default_props) (fun f -> f ~this)
+      ) |> Js.wrap_meth_callback
+    val propTypes = map (option class_opts.prop_types) (fun s -> s)
+    val mixins =
+      map (option class_opts.mixins) (fun m -> Array.of_list m |> Js.array)
+    val statics = map (option class_opts.statics) (fun s -> s)
+    val displayName = map (option class_opts.display_name) Js.string
+    (* Lifecycle Methods *)
+    val componentWillMount = (fun this ->
+        map (option class_opts.component_will_mount) (fun f -> f ~this)
+      ) |> Js.wrap_meth_callback
+    val componentDidMount = (fun this ->
+        map (option class_opts.component_did_mount) (fun f -> f ~this)
+      ) |> Js.wrap_meth_callback
+    val componentWillReceiveProps = (fun this next_prop ->
+        (fun f -> f ~this ~next_prop)
+        |> map (option class_opts.component_will_receive_props)
+      ) |> Js.wrap_meth_callback
+    val shouldComponentUpdate = (fun this next_prop next_state ->
+        (fun f -> f ~this ~next_prop ~next_state)
+        |> map (option class_opts.should_component_update)
+      ) |> Js.wrap_meth_callback
+    val componentWillUpdate = (fun this next_prop next_state ->
+        (fun f -> f ~this ~next_prop ~next_state)
+        |> map (option class_opts.component_will_update)
+      ) |> Js.wrap_meth_callback
+    val componentDidUpdate = (fun this prev_prop prev_state ->
+        (fun f -> f ~this ~prev_prop ~prev_state)
+        |> map (option class_opts.component_did_update)
+      ) |> Js.wrap_meth_callback
+    val componentWillUnmount = (fun this ->
+        map (option class_opts.component_will_unmount) (fun f -> f ~this)
+      ) |> Js.wrap_meth_callback
   end)
   in
-  (* Yay *)
-  comp##.render :=
-    Js.wrap_meth_callback (fun this -> class_opts.render ~this)
-    |> return;
-
-  comp##.getInitialState :=
-    Js.wrap_meth_callback
-      (fun this -> map (option class_opts.initial_state) (fun f -> f ~this))
-    |> return;
-
-  comp##.getDefaultProps :=
-    Js.wrap_meth_callback
-      (fun this -> map (option class_opts.default_props) (fun f -> f ~this))
-    |> return;
-
-  comp##.componentWillMount :=
-    Js.wrap_meth_callback
-      (fun this -> map (option class_opts.component_will_mount) (fun f -> f ~this))
-    |> return;
-
-  comp##.componentDidMount :=
-    Js.wrap_meth_callback
-      (fun this -> map (option class_opts.component_did_mount) (fun f -> f ~this))
-    |> return;
-
-  comp##.componentWillReceiveProps :=
-    Js.wrap_meth_callback
-      (fun this next_prop ->
-         map
-           (option class_opts.component_will_receive_props)
-           (fun f -> f ~this ~next_prop))
-    |> return;
-
-  comp##.shouldComponentUpdate :=
-    Js.wrap_meth_callback
-      (fun this next_prop next_state ->
-         map
-           (option class_opts.should_component_update)
-           (fun f -> f ~this ~next_prop ~next_state))
-    |> return;
-
-  comp##.componentWillUpdate :=
-    Js.wrap_meth_callback
-      (fun this next_prop next_state ->
-         map
-           (option class_opts.component_will_update)
-           (fun f -> f ~this ~next_prop ~next_state))
-    |> return;
-
-  comp##.componentDidUpdate :=
-    Js.wrap_meth_callback
-      (fun this prev_prop prev_state ->
-         map
-           (option class_opts.component_did_update)
-           (fun f -> f ~this ~prev_prop ~prev_state))
-    |> return;
-
-  comp##.componentWillUnmount :=
-    Js.wrap_meth_callback
-      (fun this ->
-         map
-           (option class_opts.component_will_unmount)
-           (fun f -> f ~this))
-    |> return;
 
   Low_level_bindings.react##createClass comp
 
