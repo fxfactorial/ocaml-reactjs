@@ -77,8 +77,8 @@ module Low_level_bindings = struct
           ('this Js.t, react_element Js.t) Js.meth_callback Js.Opt.t Js.prop;
         getInitialState :
           ('this Js.t, 'initial_state Js.t Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
-        (* getDefaultProps : *)
-        (*   ('this Js.t, 'default_props Js.t Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop; *)
+        getDefaultProps :
+          ('this Js.t, 'default_props Js.t Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
         (* propTypes : 'props_validator Js.t Js.Opt.t Js.readonly_prop; *)
         (* mixins : 'mixin Js.t Js.js_array Js.t Js.Opt.t Js.readonly_prop; *)
         (* statics : 'static_functions Js.t Js.Opt.t Js.readonly_prop; *)
@@ -213,7 +213,7 @@ let create_class class_opts = let open Js.Opt in
     (* Component Specifications *)
     val mutable render = Js.null
     val mutable getInitialState = Js.null
-    (* val mutable getDefaultProps = Js.null *)
+    val mutable getDefaultProps = Js.null
     (* val propTypes = map (option class_opts.prop_types) (fun s -> s) *)
     (* val mixins = *)
     (*   map (option class_opts.mixins) (fun m -> Array.of_list m |> Js.array) *)
@@ -239,10 +239,10 @@ let create_class class_opts = let open Js.Opt in
       (fun this -> map (option class_opts.initial_state) (fun f -> f ~this))
     |> return;
 
-  (* comp##.getDefaultProps := *)
-  (*   Js.wrap_meth_callback *)
-  (*     (fun this -> map (option class_opts.default_props) (fun f -> f this)) *)
-  (*   |> return; *)
+  comp##.getDefaultProps :=
+    Js.wrap_meth_callback
+      (fun this -> map (option class_opts.default_props) (fun f -> f ~this))
+    |> return;
 
   (* comp##.componentWillMount := *)
   (*   Js.wrap_meth_callback *)

@@ -4,6 +4,10 @@ let example_application =
         print_endline "Initial state called";
         object%js end
       )
+    ~default_props:(fun ~this ->
+        print_endline "Default props called";
+        object%js end
+      )
     (fun ~this ->
        let elapsed = Js.math##round this##.props##.elapsed /. 100.0 in
        let seconds = elapsed /. 10.0 in
