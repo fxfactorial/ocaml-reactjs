@@ -17,6 +17,13 @@ let example_application =
         print_endline "Should component update called";
         Js.bool true
       )
+    ~component_will_update:(fun ~this ~next_prop ~next_state ->
+        print_endline "Component will update"
+      )
+    ~component_did_update:(fun ~this ~prev_prop ~prev_state ->
+        print_endline "Component did update"
+      )
+    ~component_will_unmount:(fun ~this -> print_endline "Component about to unmount")
     (fun ~this ->
        let elapsed = Js.math##round this##.props##.elapsed /. 100.0 in
        let seconds = elapsed /. 10.0 in

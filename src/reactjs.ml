@@ -95,15 +95,15 @@ module Low_level_bindings = struct
           ('this component_api,
            'next_props Js.t -> 'next_state Js.t -> bool Js.t Js.Opt.t)
             Js.meth_callback Js.Opt.t Js.prop;
-        (* componentWillUpdate : *)
-        (*   ('this Js.t, 'next_props Js.t -> 'next_state Js.t -> unit Js.Opt.t) *)
-        (*     Js.meth_callback Js.Opt.t Js.prop; *)
-        (* componentDidUpdate : *)
-        (*   ('this Js.t, *)
-        (*    'prev_props Js.t -> 'prev_state Js.t -> unit Js.Opt.t) *)
-        (*     Js.meth_callback Js.Opt.t Js.prop; *)
-        (* componentWillUnmount : *)
-        (*   ('this Js.t, unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop; *)
+        componentWillUpdate :
+          ('this Js.t, 'next_prop Js.t -> 'next_state Js.t -> unit Js.Opt.t)
+            Js.meth_callback Js.Opt.t Js.prop;
+        componentDidUpdate :
+          ('this Js.t,
+           'prev_prop Js.t -> 'prev_state Js.t -> unit Js.Opt.t)
+            Js.meth_callback Js.Opt.t Js.prop;
+        componentWillUnmount :
+          ('this Js.t, unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
       > Js.t ->
       react_class Js.t Js.meth
 
@@ -225,9 +225,9 @@ let create_class class_opts = let open Js.Opt in
     val mutable componentDidMount = Js.null
     val mutable componentWillReceiveProps = Js.null
     val mutable shouldComponentUpdate = Js.null
-    (* val mutable componentWillUpdate = Js.null *)
-    (* val mutable componentDidUpdate = Js.null *)
-    (* val mutable componentWillUnmount = Js.null *)
+    val mutable componentWillUpdate = Js.null
+    val mutable componentDidUpdate = Js.null
+    val mutable componentWillUnmount = Js.null
   end)
   in
   (* Yay *)
@@ -271,29 +271,29 @@ let create_class class_opts = let open Js.Opt in
            (fun f -> f ~this ~next_prop ~next_state))
     |> return;
 
-  (* comp##.componentWillUpdate := *)
-  (*   Js.wrap_meth_callback *)
-  (*     (fun this next_props next_state -> *)
-  (*        map *)
-  (*          (option class_opts.component_will_update) *)
-  (*          (fun f -> f this next_props next_state)) *)
-  (*   |> return; *)
+  comp##.componentWillUpdate :=
+    Js.wrap_meth_callback
+      (fun this next_prop next_state ->
+         map
+           (option class_opts.component_will_update)
+           (fun f -> f ~this ~next_prop ~next_state))
+    |> return;
 
-  (* comp##.componentDidUpdate := *)
-  (*   Js.wrap_meth_callback *)
-  (*     (fun this prev_props prev_state -> *)
-  (*        map *)
-  (*          (option class_opts.component_did_update) *)
-  (*          (fun f -> f this prev_props prev_state)) *)
-  (*   |> return; *)
+  comp##.componentDidUpdate :=
+    Js.wrap_meth_callback
+      (fun this prev_prop prev_state ->
+         map
+           (option class_opts.component_did_update)
+           (fun f -> f ~this ~prev_prop ~prev_state))
+    |> return;
 
-  (* comp##.componentWillUnmount := *)
-  (*   Js.wrap_meth_callback *)
-  (*     (fun this -> *)
-  (*        map *)
-  (*          (option class_opts.component_will_unmount) *)
-  (*          (fun f -> f this)) *)
-  (*   |> return; *)
+  comp##.componentWillUnmount :=
+    Js.wrap_meth_callback
+      (fun this ->
+         map
+           (option class_opts.component_will_unmount)
+           (fun f -> f ~this))
+    |> return;
 
   Low_level_bindings.react##createClass comp
 
