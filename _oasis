@@ -25,29 +25,29 @@ Library reactjs
     lwt.ppx,
     lwt (>= 2.5.2)
 
-Library high_level
-  FindlibName: high_level
-  install: true
-  FindlibParent: reactjs
-  Path: src/high_level
-  Modules: Reactjs_high_level
-  CompiledObject: byte
-  ByteOpt: -g -w +a-4-40..42-44-45-48
-  BuildDepends: reactjs
+# Library high_level
+#   FindlibName: high_level
+#   install: true
+#   FindlibParent: reactjs
+#   Path: src/high_level
+#   Modules: Reactjs_high_level
+#   CompiledObject: byte
+#   ByteOpt: -g -w +a-4-40..42-44-45-48
+#   BuildDepends: reactjs
 
-Library ppx
-  FindlibName: ppx
-  FindlibParent: reactjs
-  Path: src/ppx
-  Modules: Ppx_reactjs
-  CompiledObject: byte
-  BuildDepends:
-    compiler-libs,
-    compiler-libs.common,
-    reactjs.high_level
-  XMETADescription: New-style (ppx) syntax extension
-  XMETARequires:    reactjs.high_level
-  XMETAExtraLines:  ppx = "ppx_reactjs"
+# Library ppx
+#   FindlibName: ppx
+#   FindlibParent: reactjs
+#   Path: src/ppx
+#   Modules: Ppx_reactjs
+#   CompiledObject: byte
+#   BuildDepends:
+#     compiler-libs,
+#     compiler-libs.common,
+#     reactjs
+#   XMETADescription: New-style (ppx) syntax extension
+#   XMETARequires:    reactjs.high_level
+#   XMETAExtraLines:  ppx = "ppx_reactjs"
 
 SourceRepository master
   Type:     git

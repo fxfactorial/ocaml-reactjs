@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 85681388ee4efafa62f56864759d9b78) *)
+(* DO NOT EDIT (digest: b3ea4925e4ab39ed08b3e9833f452a52) *)
 module OASISGettext = struct
 (* # 22 "src/oasis/OASISGettext.ml" *)
 
@@ -767,8 +767,7 @@ end
 open Ocamlbuild_plugin;;
 let package_default =
   {
-     MyOCamlbuildBase.lib_ocaml =
-       [("reactjs", ["src"], []); ("high_level", ["src/high_level"], [])];
+     MyOCamlbuildBase.lib_ocaml = [("reactjs", ["src"], [])];
      lib_c = [];
      flags =
        [
@@ -786,24 +785,9 @@ let package_default =
             [
                (OASISExpr.EBool true,
                  S [A "-g"; A "-w"; A "+a-4-40..42-44-45-48"])
-            ]);
-          (["oasis_library_high_level_byte"; "ocaml"; "link"; "byte"],
-            [
-               (OASISExpr.EBool true,
-                 S [A "-g"; A "-w"; A "+a-4-40..42-44-45-48"])
-            ]);
-          (["oasis_library_high_level_byte"; "ocaml"; "ocamldep"; "byte"],
-            [
-               (OASISExpr.EBool true,
-                 S [A "-g"; A "-w"; A "+a-4-40..42-44-45-48"])
-            ]);
-          (["oasis_library_high_level_byte"; "ocaml"; "compile"; "byte"],
-            [
-               (OASISExpr.EBool true,
-                 S [A "-g"; A "-w"; A "+a-4-40..42-44-45-48"])
             ])
        ];
-     includes = [("src/high_level", ["src"])]
+     includes = []
   }
   ;;
 
@@ -811,6 +795,6 @@ let conf = {MyOCamlbuildFindlib.no_automatic_syntax = false}
 
 let dispatch_default = MyOCamlbuildBase.dispatch_default conf package_default;;
 
-# 815 "myocamlbuild.ml"
+# 799 "myocamlbuild.ml"
 (* OASIS_STOP *)
 Ocamlbuild_plugin.dispatch dispatch_default;;

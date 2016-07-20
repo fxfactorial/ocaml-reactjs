@@ -1,17 +1,33 @@
+open Reactjs
+
 let commentBox =
-  Reactjs.react##createClass
-    (object%js(self)
-      val displayName = Js.string "CommentBox"
-      method render =
-        Reactjs.react##createElement_withPropsAndSingleText
-          (Js.string "div")
-          (object%js val className = Js.string "commentBox" end)
-          (Js.string "Hello, world! I am a CommentBox.")
-      method getInitialState = Js.null
-      method getDefaultProps = Js.null
-    end)
+  with_default_options
+    ~default_props:(fun _ ->
+        object%js
+          val some_words = Js.string "These are some things I wanted to pass Around"
+        end
+      )
+    ~component_did_mount:(fun this ->
+        Printf.sprintf "Pulling out of the props: %s"
+          (this##.props##.some_words |> Js.to_string)
+        |> print_endline;
+        try
+          Printf.sprintf "Non existence from props: %s"
+            (this##.props##.junk |> Js.to_string)
+          |> print_endline
+        with Js.Error e ->
+          Printf.sprintf "Yay OCaml error handling: %s"
+            (Js.to_string e##.message)
+          |> print_endline
+      )
+    ~render:(fun _ ->
+        create_element
+          {element_name = "div";
+           class_name = "commentBox";
+           children = `Text_nodes ["Hello, world! I am a CommentBox"]})
+    "CommentBox"
+  |> create_class
 
 let () =
-  Reactjs.reactDOM##render
-    (Reactjs.react##createElement_WithReactClass commentBox Js.null)
-    (Dom_html.getElementById "content")
+  let id = Dom_html.getElementById in
+  render (create_element_from_class commentBox) (id "content")

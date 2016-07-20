@@ -1,18 +1,10 @@
 # OASIS_START
-# DO NOT EDIT (digest: 02e0e33a1857aa0f69d0a836121cc16d)
+# DO NOT EDIT (digest: 2a2903d9aa174626022babd5664ff095)
 version = "0.0.1"
 description = "js_of_ocaml bindings for Reactjs"
 requires = "js_of_ocaml js_of_ocaml.ppx lwt.ppx lwt"
 archive(byte) = "reactjs.cma"
 archive(byte, plugin) = "reactjs.cma"
 exists_if = "reactjs.cma"
-package "high_level" (
- version = "0.0.1"
- description = "js_of_ocaml bindings for Reactjs"
- requires = "reactjs"
- archive(byte) = "high_level.cma"
- archive(byte, plugin) = "high_level.cma"
- exists_if = "high_level.cma"
-)
 # OASIS_STOP
 

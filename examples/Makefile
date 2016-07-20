@@ -1,4 +1,4 @@
-pkgs := reactjs.high_level
+pkgs := reactjs
 # js_debug := --debug-info --no-inline \
 # --pretty --linkall --source-map-inline --source-map \
 # --disable=optcall --disable=share --disable=shortvar \
@@ -6,13 +6,13 @@ pkgs := reactjs.high_level
 
 js_debug := --enable=debuginfo --disable=inline --enable=pretty
 
-all: tutorial
+all: tutorial_high_level
 
-tutorial:tutorial.ml
+tutorial_high_level:tutorial.ml
 	ocamlfind ocamlc -g -package ${pkgs} -linkpkg $< -o $@
 	js_of_ocaml ${js_debug} $@ -o $@.js
 	# node $@.js
 
-clean:;@rm -f *.cmi *.cmo *.cmt a.out *.js tutorial
+clean:;@rm -f *.cmi *.cmo *.cmt a.out *.js tutorial_high_level
 
-.PHONY:clean tutorial
+.PHONY:clean tutorial_high_level

@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 6eb5bb81d49bb7f946663d9f72116089)
+# DO NOT EDIT (digest: 10ff48e1be936975aef97cf1758a1afa)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -22,15 +22,6 @@ true: annot, bin_annot
 <src/*.ml{,i,y}>: pkg_js_of_ocaml.ppx
 <src/*.ml{,i,y}>: pkg_lwt
 <src/*.ml{,i,y}>: pkg_lwt.ppx
-# Library high_level
-"src/high_level/high_level.cmxs": use_high_level
-"src/high_level/high_level.cma": oasis_library_high_level_byte
-<src/high_level/*.ml{,i,y}>: oasis_library_high_level_byte
-<src/high_level/*.ml{,i,y}>: pkg_js_of_ocaml
-<src/high_level/*.ml{,i,y}>: pkg_js_of_ocaml.ppx
-<src/high_level/*.ml{,i,y}>: pkg_lwt
-<src/high_level/*.ml{,i,y}>: pkg_lwt.ppx
-<src/high_level/*.ml{,i,y}>: use_reactjs
 # OASIS_STOP
 "examples": not_hygienic
 "examples_high_level": not_hygienic
