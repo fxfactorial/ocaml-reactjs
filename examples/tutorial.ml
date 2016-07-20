@@ -1,7 +1,7 @@
 open Reactjs
 
 let commentBox =
-  with_default_options
+  make_class_spec
     ~default_props:(fun _ ->
         object%js
           val some_words = Js.string "These are some things I wanted to pass Around"
@@ -25,7 +25,6 @@ let commentBox =
           Printf.sprintf "Yay OCaml error handling: %s"
             (Js.to_string e##.message)
           |> print_endline
-
       )
     ~component_did_mount:(fun this ->
 
@@ -36,12 +35,12 @@ let commentBox =
         this##.props##call_me;
 
       )
-    ~render:(fun _ ->
+    ~display_name:"CommentBox"
+    (fun _ ->
         create_element
           {element_name = "div";
            class_name = "commentBox";
            children = `Text_nodes ["Hello, world! I am a CommentBox"]})
-    "CommentBox"
   |> create_class
 
 let () =

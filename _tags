@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 10ff48e1be936975aef97cf1758a1afa)
+# DO NOT EDIT (digest: 8018ca818fc784bbb8667ffae87e4882)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -22,6 +22,8 @@ true: annot, bin_annot
 <src/*.ml{,i,y}>: pkg_js_of_ocaml.ppx
 <src/*.ml{,i,y}>: pkg_lwt
 <src/*.ml{,i,y}>: pkg_lwt.ppx
+<src/*.ml{,i,y}>: pkg_ppx_deriving.make
+<src/*.ml{,i,y}>: pkg_ppx_deriving.show
 # OASIS_STOP
 "examples": not_hygienic
 "examples_high_level": not_hygienic

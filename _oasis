@@ -23,7 +23,9 @@ Library reactjs
     js_of_ocaml (>= 2.8.1),
     js_of_ocaml.ppx,
     lwt.ppx,
-    lwt (>= 2.5.2)
+    lwt (>= 2.5.2),
+    ppx_deriving.show,
+    ppx_deriving.make
 
 # Library high_level
 #   FindlibName: high_level

@@ -78,7 +78,7 @@ module Low_level_bindings = struct
        propTypes : 'props_validator Js.t Js.Opt.t Js.readonly_prop;
        mixins : 'mixin Js.t Js.js_array Js.t Js.Opt.t Js.readonly_prop;
        statics : 'static_functions Js.t Js.Opt.t Js.readonly_prop;
-       displayName : Js.js_string Js.t Js.readonly_prop;
+       displayName : Js.js_string Js.t Js.Opt.t Js.readonly_prop;
        (* Lifecycle Methods *)
        componentWillMount :
          ('this component_api, unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
@@ -260,7 +260,8 @@ module Low_level_bindings = struct
 end
 
 let debug thing field =
-  Firebug.console##log (Js.Unsafe.meth_call (Js.Unsafe.get thing field) "toString" [||])
+  Firebug.console##log
+    (Js.Unsafe.(meth_call (get thing field) "toString" [||]))
 
 type element_opts =
   { element_name : string;
@@ -279,16 +280,15 @@ type ('this,
       'prev_state,
       'props,
       'mixin) class_spec =
-  { render: 'this Js.t -> Low_level_bindings.react_element Js.t;
+  { render: 'this Js.t -> Low_level_bindings.react_element Js.t; [@main]
     initial_state : ('this Js.t -> 'initial_state Js.t) option;
     default_props : ('this Js.t -> 'default_props Js.t) option;
     prop_types : 'prop_types Js.t option;
     mixins : 'mixin Js.t list option;
     statics : 'static_functions Js.t option;
-    display_name : string;
+    display_name : string option;
     component_will_mount : ('this Js.t -> unit) option;
     component_did_mount : ('this Js.t -> unit) option;
-
     component_will_receive_props : ('this Js.t -> 'next_props Js.t -> unit) option;
     should_component_update :
       ('this Js.t -> 'next_props Js.t -> 'next_state Js.t -> bool Js.t) option;
@@ -296,19 +296,7 @@ type ('this,
       ('this Js.t -> 'next_props Js.t -> 'next_state Js.t -> unit) option;
     component_did_update :
       ('this Js.t -> 'prev_props Js.t -> 'prev_state Js.t -> unit) option;
-    component_will_unmount : ('this Js.t -> unit) option;}
-
-let with_default_options
-    ?initial_state ?default_props ?prop_types
-    ?mixins ?statics ?component_will_mount ?component_did_mount
-    ?component_will_receive_props ?should_component_update
-    ?component_will_update ?component_did_update
-    ?component_will_unmount
-    ~render display_name =
-  {render; display_name; initial_state; default_props; prop_types; mixins;
-   statics; component_will_mount; component_did_mount;
-   component_will_receive_props; should_component_update;
-   component_will_update; component_did_update; component_will_unmount;}
+    component_will_unmount : ('this Js.t -> unit) option;} [@@deriving make]
 
 let create_element element_opts =
   let arr =
@@ -342,7 +330,7 @@ let create_class class_opts = let open Js.Opt in
     val mixins =
       map (option class_opts.mixins) (fun m -> Array.of_list m |> Js.array)
     val statics = map (option class_opts.statics) (fun s -> s)
-    val displayName = Js.string class_opts.display_name
+    val displayName = map (option class_opts.display_name) (fun s -> Js.string s)
     (* Lifecycle Methods *)
     val mutable componentWillMount = Js.null
     val mutable componentDidMount = Js.null
@@ -441,3 +429,11 @@ let create_class class_opts = let open Js.Opt in
 
 let render element dom_elem =
   Low_level_bindings.reactDOM##render element dom_elem
+
+module DOM = struct
+
+  type tag = [`p | `div] [@@deriving show]
+  (* let string_of_tag =  *)
+
+
+end
