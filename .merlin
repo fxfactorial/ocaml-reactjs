@@ -1,5 +1,5 @@
 S src
 B _build/src
-PKG js_of_ocaml.ppx js_of_ocaml reactjs reactjs.high_level
+PKG js_of_ocaml.ppx js_of_ocaml reactjs
 PKG compiler-libs compiler-libs.common
 FLG -w +a-4-40..42-44-45-48

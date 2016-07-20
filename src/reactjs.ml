@@ -21,6 +21,16 @@ module Low_level_bindings = struct
       (try require_module "react-dom" with _ -> undef),
       (try require_module "react-dom-server" with _ -> undef)
 
+  (* type ('this, 'prev_state, 'prev_prop, 'with_keys_to_update, 'component, 'foo) component_api = *)
+  (*   (<setState : *)
+  (*       (('prev_state Js.t -> *)
+  (*         'prev_prop Js.t -> *)
+  (*         'with_keys_to_update Js.t) -> *)
+  (*        ('this Js.t, (unit -> unit)) Js.meth_callback -> *)
+  (*        unit) Js.meth; .. > as 'component) Js.t *)
+
+  type 'a component_api = (<isMounted : bool Js.t Js.meth; .. > as 'a) Js.t
+
   class type react_dom_server = object
     method renderToString :
       react_element Js.t -> Js.js_string Js.t Js.meth
@@ -42,7 +52,8 @@ module Low_level_bindings = struct
 
   end
 
-  and react = object
+  and ['this] react = object
+
     method createElement_withString :
       Js.js_string Js.t -> react_element Js.t Js.meth
 
@@ -58,38 +69,47 @@ module Low_level_bindings = struct
     method isValidElement : 'a Js.t -> bool Js.t Js.meth
 
     method createClass :
-      <
-        render :
-          ('this Js.t, react_element Js.t) Js.meth_callback Js.Opt.t Js.prop;
-        getInitialState :
-          ('this Js.t, 'initial_state Js.t Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
-        getDefaultProps :
-          ('this Js.t, 'default_props Js.t Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
-        propTypes : 'props_validator Js.t Js.Opt.t Js.readonly_prop;
-        mixins : 'mixin Js.t Js.js_array Js.t Js.Opt.t Js.readonly_prop;
-        statics : 'static_functions Js.t Js.Opt.t Js.readonly_prop;
-        displayName : Js.js_string Js.t Js.readonly_prop;
-        (* Lifecycle Methods *)
-        componentWillMount :
-          ('this Js.t, unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
-        componentDidMount : ('this Js.t, unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
-        componentWillReceiveProps :
-          ('this Js.t, 'next_props Js.t -> unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
-        shouldComponentUpdate :
-          ('this Js.t, 'next_props Js.t -> 'next_state Js.t -> bool Js.t Js.Opt.t)
-            Js.meth_callback Js.Opt.t Js.prop;
-        componentWillUpdate :
-          ('this Js.t, 'next_props Js.t -> 'next_state Js.t -> unit Js.Opt.t)
-            Js.meth_callback Js.Opt.t Js.prop;
+      <render :
+         ('this Js.t, react_element Js.t) Js.meth_callback Js.Opt.t Js.prop;
+       getInitialState :
+         ('this Js.t, 'initial_state Js.t Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
+       getDefaultProps :
+         ('this Js.t, 'default_props Js.t Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
+       propTypes : 'props_validator Js.t Js.Opt.t Js.readonly_prop;
+       mixins : 'mixin Js.t Js.js_array Js.t Js.Opt.t Js.readonly_prop;
+       statics : 'static_functions Js.t Js.Opt.t Js.readonly_prop;
+       displayName : Js.js_string Js.t Js.readonly_prop;
+       (* Lifecycle Methods *)
 
-        componentDidUpdate :
-          ('this Js.t,
-           'prev_props Js.t -> 'prev_state Js.t -> unit Js.Opt.t)
-            Js.meth_callback Js.Opt.t Js.prop;
-        componentWillUnmount :
-          ('this Js.t, unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
-      >
-        Js.t ->
+       componentWillMount :
+         ('this component_api, unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
+
+         (* ('this Js.t, unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop; *)
+
+       (*   ((('this, 'prev_state, 'prev_prop, *)
+       (*      'with_keys_to_update, 'component) component_api as 'com) Js.t, *)
+       (*    unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop; *)
+
+       (* componentWillMount : *)
+       (*   ((('a, 'b, 'c, 'd, 'e) component_api as 'f) Js.t, *)
+
+       (*    unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop; *)
+
+       componentDidMount : ('this Js.t, unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
+       componentWillReceiveProps :
+         ('this Js.t, 'next_props Js.t -> unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop;
+       shouldComponentUpdate :
+         ('this Js.t, 'next_props Js.t -> 'next_state Js.t -> bool Js.t Js.Opt.t)
+           Js.meth_callback Js.Opt.t Js.prop;
+       componentWillUpdate :
+         ('this Js.t, 'next_props Js.t -> 'next_state Js.t -> unit Js.Opt.t)
+           Js.meth_callback Js.Opt.t Js.prop;
+       componentDidUpdate :
+         ('this Js.t,
+          'prev_props Js.t -> 'prev_state Js.t -> unit Js.Opt.t)
+           Js.meth_callback Js.Opt.t Js.prop;
+       componentWillUnmount :
+         ('this Js.t, unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop; > Js.t ->
       react_class Js.t Js.meth
 
     method createFactory_withString :
@@ -243,7 +263,7 @@ module Low_level_bindings = struct
 
   end
 
-  let react : react Js.t = __react
+  let react : _ react Js.t = __react
 
   let reactDOM : react_dom Js.t = __reactDOM
 
@@ -271,7 +291,7 @@ type ('this,
       'prev_props,
       'prev_state,
       'props,
-      'mixin) component =
+      'mixin) class_spec =
   { render: 'this Js.t -> Low_level_bindings.react_element Js.t;
     initial_state : ('this Js.t -> 'initial_state Js.t) option;
     default_props : ('this Js.t -> 'default_props Js.t) option;
@@ -324,8 +344,6 @@ let create_element element_opts =
 let create_element_from_class class_ =
   Low_level_bindings.react##createElement_WithReactClass class_ Js.null
 
-let render element dom_elem =
-  Low_level_bindings.reactDOM##render element dom_elem
 
 let create_class class_opts = let open Js.Opt in
   let comp = (object%js
@@ -414,3 +432,25 @@ let create_class class_opts = let open Js.Opt in
     |> return;
 
   Low_level_bindings.react##createClass comp
+
+(* class react_class class_spec = object *)
+
+(*   val js_object = create_class class_spec *)
+
+(*   method unsafe_react_class = js_object *)
+
+(* end *)
+
+(* class react_elem react_class = object *)
+
+(*   val js_object = create_element_from_class react_class *)
+
+(*   method unsafe_react_elem = js_object *)
+
+(* end *)
+
+(* let render (element : react_elem) dom_elem = *)
+(*   Low_level_bindings.reactDOM##render element#unsafe_react_elem dom_elem *)
+
+let render element dom_elem =
+  Low_level_bindings.reactDOM##render element dom_elem
