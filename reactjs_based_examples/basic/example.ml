@@ -1,5 +1,9 @@
 let example_application =
   Reactjs.make_class_spec
+    ~initial_state:(fun ~this ->
+        print_endline "Initial state called";
+        object%js end
+      )
     (fun ~this ->
        let elapsed = Js.math##round this##.props##.elapsed /. 100.0 in
        let seconds = elapsed /. 10.0 in
