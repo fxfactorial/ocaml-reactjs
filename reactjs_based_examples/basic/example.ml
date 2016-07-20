@@ -10,8 +10,13 @@ let example_application =
       )
     ~component_will_mount:(fun ~this -> print_endline "Component will mount")
     ~component_did_mount:(fun ~this -> print_endline "Component did mount")
-    ~component_will_receive_props:(fun ~this ~next_props ->
-        print_endline "Component will receive props")
+    ~component_will_receive_props:(fun ~this ~next_prop ->
+        print_endline "Component will receive props"
+      )
+    ~should_component_update:(fun ~this ~next_prop ~next_state ->
+        print_endline "Should component update called";
+        Js.bool true
+      )
     (fun ~this ->
        let elapsed = Js.math##round this##.props##.elapsed /. 100.0 in
        let seconds = elapsed /. 10.0 in
