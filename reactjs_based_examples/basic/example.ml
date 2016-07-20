@@ -9,6 +9,7 @@ let example_application =
         object%js end
       )
     ~component_will_mount:(fun ~this -> print_endline "Component will mount")
+    ~component_did_mount:(fun ~this -> print_endline "Component did mount")
     (fun ~this ->
        let elapsed = Js.math##round this##.props##.elapsed /. 100.0 in
        let seconds = elapsed /. 10.0 in
