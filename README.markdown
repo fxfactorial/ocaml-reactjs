@@ -9,55 +9,35 @@ hard.
 Examples
 =========
 
+This example should be familiar.
 
 ```ocaml
-open Reactjs
+let example_application =
+  Reactjs.make_class_spec
+    (fun this ->
+       let elapsed = Js.math##round this##.props##.elapsed /. 100.0 in
+       let seconds = elapsed /. 10.0 in
+       let message = Printf.sprintf
+           "React has been successfully running for %f seconds" seconds
+       in
+       Reactjs.DOM.make ~tag:`p (`Text_nodes [message])
+    )
+  |> Reactjs.create_class
 
-let commentBox =
-  make_class_spec
-    ~default_props:(fun _ ->
-        object%js
-          val some_words = Js.string "These are some things I wanted to pass Around"
-          method call_me = print_endline "Function inside the prop called"
-        end
-      )
-    ~component_will_mount:(fun this ->
-
-        if this##isMounted |> Js.to_bool
-        then print_endline "Was mounted"
-        else print_endline "Was not mounted";
-
-        Printf.sprintf "Pulling out of the props: %s"
-          (this##.props##.some_words |> Js.to_string)
-        |> print_endline;
+let _ =
+  let example_app_factory = Reactjs.create_factory example_application in
+  let start = (new%js Js.date_now)##getTime in
+  Reactjs.set_interval
+    ~f:(fun () ->
         try
-          Printf.sprintf "Non existence from props: %s"
-            (this##.props##.junk |> Js.to_string)
-          |> print_endline
+          let with_new_props = example_app_factory ~props:(object%js
+              val elapsed = (new%js Js.date_now)##getTime -. start
+            end)
+          in
+          Reactjs.render with_new_props (Reactjs.get_elem ~id:"container")
         with Js.Error e ->
-          Printf.sprintf "Yay OCaml error handling: %s"
-            (Js.to_string e##.message)
-          |> print_endline
-      )
-    ~component_did_mount:(fun this ->
-
-        if this##isMounted |> Js.to_bool
-        then print_endline "Was mounted"
-        else print_endline "Was not mounted";
-
-        this##.props##call_me;
-
-      )
-    ~display_name:"CommentBox"
-    (fun _ ->
-       DOM.p (`Text_nodes
-                ["Hello, world!";
-                 "I am a Comment box in a p tag"]))
-  |> create_class
-
-let () =
-  let id = Dom_html.getElementById in
-  render (create_element_from_class commentBox) (id "content")
+          Firebug.console##log e;
+      ) ~every:100.0
 ```
 
 Compiles with:

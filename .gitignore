@@ -23,3 +23,6 @@ T
 node_modules
 examples/tutorial_high_level
 examples/tutorial_high_level.js
+reactjs_based_examples/basic/code
+reactjs_based_examples/basic/code.js
+scratch.js
