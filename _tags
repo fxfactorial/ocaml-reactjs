@@ -26,4 +26,4 @@ true: annot, bin_annot
 <src/*.ml{,i,y}>: pkg_ppx_deriving.show
 # OASIS_STOP
 "examples": not_hygienic
-"examples_high_level": not_hygienic
+"reactjs_based_examples": not_hygienic

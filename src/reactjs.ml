@@ -1,3 +1,14 @@
+
+module Helpers = struct
+  let set_interval ~f ~every =
+    Dom_html.window##setInterval (Js.wrap_callback f) every
+
+  let get_elem ~id = Dom_html.getElementById id
+
+end
+
+include Helpers
+
 module Low_level_bindings = struct
 
   let (__react, __reactDOM, __reactDOMServer) :
@@ -91,8 +102,8 @@ module Low_level_bindings = struct
          ('this Js.t, unit Js.Opt.t) Js.meth_callback Js.Opt.t Js.prop; > Js.t ->
       react_class Js.t Js.meth
 
-    method createFactory_withString :
-      Js.js_string Js.t -> factory_function Js.t Js.meth
+    method createFactory :
+      react_class Js.t -> (prop:'new_prop Js.t -> react_element Js.t) Js.meth
 
     method version : Js.js_string Js.t Js.readonly_prop
     (* method __spread *)
@@ -108,10 +119,6 @@ module Low_level_bindings = struct
   end
 
   and react_class = object
-
-  end
-
-  and factory_function = object
 
   end
 
@@ -186,10 +193,15 @@ let create_element
 let create_element_from_class class_ =
   Low_level_bindings.react##createElement_WithReactClass class_ Js.null
 
+let create_factory :
+  Low_level_bindings.react_class Js.t ->
+  (props:'a Js.t -> Low_level_bindings.react_element Js.t) = fun c ->
+  let call_me = Low_level_bindings.react##createFactory c in
+  fun ~props -> Js.Unsafe.fun_call call_me [|Js.Unsafe.inject props|]
 
 let create_class class_opts = let open Js.Opt in
   let comp = (object%js
-    (* Component Specifications  *)
+    (* Component Specifications *)
     val mutable render = Js.null
     val mutable getInitialState = Js.null
     val mutable getDefaultProps = Js.null
@@ -274,6 +286,8 @@ let create_class class_opts = let open Js.Opt in
     |> return;
 
   Low_level_bindings.react##createClass comp
+
+let elem_from_spec spec = create_element_from_class (create_class spec)
 
 let render element dom_elem =
   Low_level_bindings.reactDOM##render element dom_elem
