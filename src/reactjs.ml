@@ -1,3 +1,4 @@
+type 'a component_api = (<isMounted : bool Js.t Js.meth; .. > as 'a) Js.t
 
 module Helpers = struct
   let set_interval ~f ~every =
@@ -32,7 +33,6 @@ module Low_level_bindings = struct
       (try require_module "react-dom" with _ -> undef),
       (try require_module "react-dom-server" with _ -> undef)
 
-  type 'a component_api = (<isMounted : bool Js.t Js.meth; .. > as 'a) Js.t
 
   (* type 'a elem_spec =  *)
 
@@ -59,6 +59,8 @@ module Low_level_bindings = struct
 
   and ['this] react = object
 
+    constraint 'this = _ component_api
+
     method createElement_withString :
       Js.js_string Js.t -> react_element Js.t Js.meth
 
@@ -76,38 +78,41 @@ module Low_level_bindings = struct
     method createClass :
       <
         render :
-          ('this Js.t, react_element Js.t) Js.meth_callback Js.readonly_prop;
+          ('this, react_element Js.t) Js.meth_callback Js.readonly_prop;
+
         getInitialState :
-          ('this Js.t,
-           'initial_state Js.t Js.Opt.t) Js.meth_callback Js.readonly_prop;
+          ('this, 'b Js.t) Js.meth_callback Js.Optdef.t Js.readonly_prop;
+
         getDefaultProps :
-          ('this Js.t,
-           'default_props Js.t Js.Optdef.t) Js.meth_callback Js.readonly_prop;
-        propTypes : 'props_validator Js.t Js.Optdef.t Js.readonly_prop;
-        mixins : 'mixin Js.t Js.js_array Js.t Js.Optdef.t Js.readonly_prop;
-        statics : 'static_functions Js.t Js.Optdef.t Js.readonly_prop;
-        displayName : Js.js_string Js.t Js.Optdef.t Js.readonly_prop;
-        (* Lifecycle Methods *)
-        componentWillMount :
-          ('this component_api, unit Js.Optdef.t) Js.meth_callback Js.readonly_prop;
-        componentDidMount :
-          ('this component_api, unit Js.Optdef.t) Js.meth_callback Js.readonly_prop;
-        componentWillReceiveProps :
-          ('this component_api,
-           'next_props Js.t -> unit Js.Optdef.t) Js.meth_callback Js.readonly_prop;
-        shouldComponentUpdate :
-          ('this component_api,
-           'next_props Js.t -> 'next_state Js.t -> bool Js.t)
-            Js.meth_callback Js.Optdef.t Js.readonly_prop;
-        componentWillUpdate :
-          ('this Js.t, 'next_prop Js.t -> 'next_state Js.t -> unit Js.Optdef.t)
-            Js.meth_callback Js.readonly_prop;
-        componentDidUpdate :
-          ('this Js.t,
-           'prev_prop Js.t -> 'prev_state Js.t -> unit Js.Optdef.t)
-            Js.meth_callback Js.readonly_prop;
-        componentWillUnmount :
-          ('this Js.t, unit Js.Optdef.t) Js.meth_callback Js.readonly_prop;
+          ('this, 'default_props Js.t ) Js.meth_callback Js.Optdef.t Js.readonly_prop;
+
+        (* propTypes : 'props_validator Js.t Js.Optdef.t Js.readonly_prop; *)
+        (* mixins : 'mixin Js.t Js.js_array Js.t Js.Optdef.t Js.readonly_prop; *)
+        (* statics : 'static_functions Js.t Js.Optdef.t Js.readonly_prop; *)
+        (* displayName : Js.js_string Js.t Js.Optdef.t Js.readonly_prop; *)
+        (* (\* Lifecycle Methods *\) *)
+        (* componentWillMount : *)
+        (*   ('this component_api, unit Js.Optdef.t) Js.meth_callback Js.readonly_prop; *)
+        (* componentDidMount : *)
+        (*   ('this component_api, unit Js.Optdef.t) Js.meth_callback Js.readonly_prop; *)
+        (* componentWillReceiveProps : *)
+        (*   ('this component_api, *)
+        (*    'next_props Js.t -> unit Js.Optdef.t) Js.meth_callback Js.readonly_prop; *)
+        (* shouldComponentUpdate : *)
+        (*   ('this component_api, *)
+        (*    'next_props Js.t -> 'next_state Js.t -> bool Js.t) *)
+        (*     Js.meth_callback Js.Optdef.t Js.readonly_prop; *)
+        (* componentWillUpdate : *)
+        (*   ('this component_api, 'next_prop Js.t -> 'next_state Js.t -> unit) *)
+        (*     Js.meth_callback  Js.Optdef.t Js.readonly_prop; *)
+        (* componentDidUpdate : *)
+        (*   ('this component_api, *)
+        (*    'prev_prop Js.t -> 'prev_state Js.t -> unit) *)
+        (*     Js.meth_callback Js.Optdef.t Js.readonly_prop; *)
+        (* componentWillUnmount : *)
+        (*   ('this component_api, unit Js.Optdef.t) *)
+        (*     Js.meth_callback Js.Optdef.t Js.readonly_prop; *)
+        (* this .. lets us also speak about other things arbitrarily *)
         ..
       > Js.t ->
       react_class Js.t Js.meth
@@ -132,7 +137,10 @@ module Low_level_bindings = struct
 
   end
 
-  let react : _ react Js.t = __react
+  let react :
+    'this .
+      (< isMounted : bool Js.t Js.meth; .. > as 'this) component_api react Js.t
+    = __react
 
   let reactDOM : react_dom Js.t = __reactDOM
 
@@ -163,10 +171,11 @@ type ('this,
       'mixin,
       'extras) class_spec =
   { render:
-      this:'this Js.t ->
+      this:'this component_api ->
       Low_level_bindings.react_element Js.t; [@main]
-    initial_state : (this:'this Js.t -> 'initial_state Js.t) option;
-    default_props : (this:'this Js.t -> 'default_props Js.t) option;
+    initial_state : (this:'this component_api -> 'initial_state Js.t) option;
+    default_props : (this:'this component_api -> 'default_props Js.t) option;
+
     prop_types : 'prop_types Js.t option;
     mixins : 'mixin Js.t list option;
     statics : 'static_functions Js.t option;
@@ -175,8 +184,6 @@ type ('this,
     component_did_mount : (this:'this Js.t -> unit) option;
     component_will_receive_props :
       (this:'this Js.t -> next_prop:'next_props Js.t -> unit) option;
-
-
 
 
     should_component_update :
@@ -232,53 +239,64 @@ let create_class class_opts = let open Js.Optdef in
   let comp = (object%js
     (* Component Specifications *)
     val render = Js.wrap_meth_callback (fun this -> class_opts.render ~this)
-    val getInitialState = (fun this -> let open Js.Opt in
-        map (option class_opts.initial_state) (fun f -> f ~this)
-      ) |> Js.wrap_meth_callback
-    val getDefaultProps = (fun this ->
-        map (option class_opts.default_props) (fun f -> f ~this)
-      ) |> Js.wrap_meth_callback
-    val propTypes = map (option class_opts.prop_types) (fun s -> s)
-    val mixins =
-      map (option class_opts.mixins) (fun m -> Array.of_list m |> Js.array)
-    val statics = map (option class_opts.statics) (fun s -> s)
-    val displayName = map (option class_opts.display_name) Js.string
+
+    val getInitialState =
+      (fun f -> Js.wrap_meth_callback (fun this -> f ~this))
+      |> map (option class_opts.initial_state)
+
+    val getDefaultProps =
+      (fun f -> Js.wrap_meth_callback (fun this -> f ~this))
+      |> map (option class_opts.default_props)
+
+
+    (* val propTypes = map (option class_opts.prop_types) (fun s -> s) *)
+    (* val mixins = *)
+    (*   map (option class_opts.mixins) (fun m -> Array.of_list m |> Js.array) *)
+    (* val statics = map (option class_opts.statics) (fun s -> s) *)
+    (* val displayName = map (option class_opts.display_name) Js.string *)
+
     (* Lifecycle Methods *)
-    val componentWillMount = (fun this ->
-        map (option class_opts.component_will_mount) (fun f -> f ~this)
-      ) |> Js.wrap_meth_callback
-    val componentDidMount = (fun this ->
-        map (option class_opts.component_did_mount) (fun f -> f ~this)
-      ) |> Js.wrap_meth_callback
-    val componentWillReceiveProps = (fun this next_prop ->
-        (fun f -> f ~this ~next_prop)
-        |> map (option class_opts.component_will_receive_props)
-      ) |> Js.wrap_meth_callback
 
 
-    val shouldComponentUpdate =
-      (fun f -> Js.wrap_meth_callback
-          (fun this next_prop next_state -> f ~this ~next_prop ~next_state))
-      |> map (option class_opts.should_component_update)
+    (* val componentWillMount = *)
+    (*   (fun this -> Js.wrap_meth_callback *)
+    (*       (fun f -> f ~this)) *)
+    (*   |> map (option class_opts.component_will_mount) *)
 
-      (* (fun this next_prop next_state -> *)
 
-        (* (fun f -> f ~this ~next_prop ~next_state) *)
-        (* |> map (option class_opts.should_component_update) *)
-      (* ) |> Js.wrap_meth_callback *)
+    (* val componentDidMount = *)
+    (*   (fun this -> Js.wrap_meth_callback *)
+    (*       (fun f -> f ~this)) *)
+    (*   |> map (option class_opts.component_did_mount) *)
 
-    val componentWillUpdate = (fun this next_prop next_state ->
-        (fun f -> f ~this ~next_prop ~next_state)
-        |> map (option class_opts.component_will_update)
-      ) |> Js.wrap_meth_callback
-    val componentDidUpdate = (fun this prev_prop prev_state ->
-        (fun f -> f ~this ~prev_prop ~prev_state)
-        |> map (option class_opts.component_did_update)
-      ) |> Js.wrap_meth_callback
+    (* val componentWillReceiveProps = *)
 
-    val componentWillUnmount = (fun this ->
-        map (option class_opts.component_will_unmount) (fun f -> f ~this)
-      ) |> Js.wrap_meth_callback
+    (*   (fun this next_prop ->  Js.wrap_meth_callback *)
+    (*       (fun f -> f ~this ~next_prop)) *)
+    (*   |> map (option class_opts.component_will_receive_props) *)
+
+
+
+    (* val shouldComponentUpdate = *)
+    (*   (fun f -> Js.wrap_meth_callback *)
+    (*       (fun this next_prop next_state -> f ~this ~next_prop ~next_state)) *)
+    (*   |> map (option class_opts.should_component_update) *)
+
+    (* val componentWillUpdate = *)
+    (*   (fun f -> Js.wrap_meth_callback *)
+    (*       (fun this next_prop next_state -> f ~this ~next_prop ~next_state)) *)
+    (*   |> map (option class_opts.component_will_update) *)
+
+    (* val componentDidUpdate = *)
+    (*   (fun f ->  Js.wrap_meth_callback *)
+    (*       (fun this prev_prop prev_state -> f ~this ~prev_prop ~prev_state)) *)
+    (*   |> map (option class_opts.component_did_update) *)
+
+    (* val componentWillUnmount = *)
+    (*   (fun f -> Js.wrap_meth_callback *)
+    (*       (fun this -> f ~this)) *)
+    (*   |> map (option class_opts.component_will_unmount) *)
+
 
   end)
   in
