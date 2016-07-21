@@ -34,6 +34,8 @@ module Low_level_bindings = struct
 
   type 'a component_api = (<isMounted : bool Js.t Js.meth; .. > as 'a) Js.t
 
+  (* type 'a elem_spec =  *)
+
   class type react_dom_server = object
     method renderToString :
       react_element Js.t -> Js.js_string Js.t Js.meth
@@ -295,33 +297,33 @@ module DOM = struct
   let without_tick tag =
     (tag |> Js.string)##substring_toEnd 1 |> Js.to_string
 
-  let make :
-    ?elem_spec:element_spec ->
-    tag:tag ->
-    children ->
-    Low_level_bindings.react_element Js.t =
-    fun ?(elem_spec=make_element_spec ()) ~tag c ->
-      let elem_name = show_tag tag |> without_tick in
-      let open Js.Opt in
-      let spec_obj =
-        object%js
-          val className = map (option elem_spec.class_name) Js.string
-        end
-      in
-      let arr =
-        (match c with
-         | `Text_nodes s -> List.map Js.string s
-         | _ -> [])
-        |> Array.of_list |> Array.map Js.Unsafe.inject
-      in
-      Js.Unsafe.meth_call
-        Low_level_bindings.react##._DOM
-        elem_name
-        (Array.append
-           [|
-             Js.Unsafe.inject spec_obj;
-           |]
-           arr
-        )
+  type 'a elem_spec =
+    (<className: Js.js_string Js.t Js.readonly_prop; .. > as 'a ) Js.t
+
+  let make
+      ?(elem_spec : (this:'this Js.t -> 'a elem_spec) option)
+      ~tag
+      c : Low_level_bindings.react_element Js.t =
+    let elem_name = show_tag tag |> without_tick in
+    let spec_object = Js.wrap_meth_callback (fun this -> match elem_spec with
+          None -> Js.undefined
+        | Some f -> f ~this |> Js.Optdef.return
+      )
+    in
+    let arr =
+      (match c with
+       | `Text_nodes s -> List.map Js.string s
+       | _ -> [])
+      |> Array.of_list |> Array.map Js.Unsafe.inject
+    in
+    Js.Unsafe.meth_call
+      Low_level_bindings.react##._DOM
+      elem_name
+      (Array.append
+         [|
+           Js.Unsafe.inject spec_object;
+         |]
+         arr
+      )
 
 end
