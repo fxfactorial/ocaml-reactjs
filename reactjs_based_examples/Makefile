@@ -4,8 +4,9 @@ pkgs := reactjs
 # --disable=optcall --disable=share --disable=shortvar \
 # --disable=deadcode --disable=genprim
 
-js_debug := --enable=debuginfo --disable=inline \
---enable=pretty --source-map-inline --source-map \
+js_debug := \
+--enable=debuginfo --disable=inline --enable=pretty \
+#--source-map-inline --source-map \
 --disable=shortvar
 
 all: code

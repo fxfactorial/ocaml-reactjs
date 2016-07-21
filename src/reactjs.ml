@@ -97,8 +97,8 @@ module Low_level_bindings = struct
            'next_props Js.t -> unit Js.Optdef.t) Js.meth_callback Js.readonly_prop;
         shouldComponentUpdate :
           ('this component_api,
-           'next_props Js.t -> 'next_state Js.t -> bool Js.t Js.Optdef.t)
-            Js.meth_callback Js.readonly_prop;
+           'next_props Js.t -> 'next_state Js.t -> bool Js.t)
+            Js.meth_callback Js.Optdef.t Js.readonly_prop;
         componentWillUpdate :
           ('this Js.t, 'next_prop Js.t -> 'next_state Js.t -> unit Js.Optdef.t)
             Js.meth_callback Js.readonly_prop;
@@ -108,6 +108,7 @@ module Low_level_bindings = struct
             Js.meth_callback Js.readonly_prop;
         componentWillUnmount :
           ('this Js.t, unit Js.Optdef.t) Js.meth_callback Js.readonly_prop;
+        ..
       > Js.t ->
       react_class Js.t Js.meth
 
@@ -159,7 +160,8 @@ type ('this,
       'prev_props,
       'prev_state,
       'props,
-      'mixin) class_spec =
+      'mixin,
+      'extras) class_spec =
   { render:
       this:'this Js.t ->
       Low_level_bindings.react_element Js.t; [@main]
@@ -173,10 +175,17 @@ type ('this,
     component_did_mount : (this:'this Js.t -> unit) option;
     component_will_receive_props :
       (this:'this Js.t -> next_prop:'next_props Js.t -> unit) option;
+
+
+
+
     should_component_update :
+
       (this:'this Js.t ->
        next_prop:'next_props Js.t ->
        next_state:'next_state Js.t -> bool Js.t) option;
+
+
     component_will_update :
       (this:'this Js.t ->
        next_prop:'next_props Js.t ->
@@ -185,8 +194,9 @@ type ('this,
       (this:'this Js.t ->
        prev_prop:'prev_props Js.t ->
        prev_state:'prev_state Js.t -> unit) option;
-      component_will_unmount : (this:'this Js.t -> unit) option;}
-[@@deriving make]
+    component_will_unmount : (this:'this Js.t -> unit) option;
+    extras : ('this Js.t -> 'extras Js.t) option;
+  } [@@deriving make]
 
 let create_element
     elem_name element_opts (children : children) :
@@ -244,10 +254,19 @@ let create_class class_opts = let open Js.Optdef in
         (fun f -> f ~this ~next_prop)
         |> map (option class_opts.component_will_receive_props)
       ) |> Js.wrap_meth_callback
-    val shouldComponentUpdate = (fun this next_prop next_state ->
-        (fun f -> f ~this ~next_prop ~next_state)
-        |> map (option class_opts.should_component_update)
-      ) |> Js.wrap_meth_callback
+
+
+    val shouldComponentUpdate =
+      (fun f -> Js.wrap_meth_callback
+          (fun this next_prop next_state -> f ~this ~next_prop ~next_state))
+      |> map (option class_opts.should_component_update)
+
+      (* (fun this next_prop next_state -> *)
+
+        (* (fun f -> f ~this ~next_prop ~next_state) *)
+        (* |> map (option class_opts.should_component_update) *)
+      (* ) |> Js.wrap_meth_callback *)
+
     val componentWillUpdate = (fun this next_prop next_state ->
         (fun f -> f ~this ~next_prop ~next_state)
         |> map (option class_opts.component_will_update)
@@ -256,9 +275,11 @@ let create_class class_opts = let open Js.Optdef in
         (fun f -> f ~this ~prev_prop ~prev_state)
         |> map (option class_opts.component_did_update)
       ) |> Js.wrap_meth_callback
+
     val componentWillUnmount = (fun this ->
         map (option class_opts.component_will_unmount) (fun f -> f ~this)
       ) |> Js.wrap_meth_callback
+
   end)
   in
 
@@ -301,29 +322,19 @@ module DOM = struct
     (<className: Js.js_string Js.t Js.readonly_prop; .. > as 'a ) Js.t
 
   let make
-      ?(elem_spec : (this:'this Js.t -> 'a elem_spec) option)
+      (e_spec : 'a Js.t)
       ~tag
       c : Low_level_bindings.react_element Js.t =
     let elem_name = show_tag tag |> without_tick in
-    let spec_object = Js.wrap_meth_callback (fun this -> match elem_spec with
-          None -> Js.undefined
-        | Some f -> f ~this |> Js.Optdef.return
-      )
-    in
-    let arr =
-      (match c with
-       | `Text_nodes s -> List.map Js.string s
-       | _ -> [])
-      |> Array.of_list |> Array.map Js.Unsafe.inject
+    let args = match c with
+      | `Text_nodes s ->
+        Js.Unsafe.inject Js.null ::
+        (List.map (fun s -> Js.string s |> Js.Opt.return |> Js.Unsafe.inject) s)
+      | _ -> []
     in
     Js.Unsafe.meth_call
       Low_level_bindings.react##._DOM
       elem_name
-      (Array.append
-         [|
-           Js.Unsafe.inject spec_object;
-         |]
-         arr
-      )
+      (Array.of_list (Js.Unsafe.inject (Js.Opt.return e_spec) :: args))
 
 end
