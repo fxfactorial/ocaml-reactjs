@@ -30,7 +30,7 @@ let example_application =
        let message = Printf.sprintf
            "React has been successfully running for %f seconds" seconds
        in
-       Reactjs.DOM.make ~tag:`p (`Text_nodes [message])
+       Reactjs.DOM.make ~tag:`p (`Text [message])
     )
   |> Reactjs.create_class
 
@@ -40,11 +40,12 @@ let _ =
   Reactjs.set_interval
     ~f:(fun () ->
         try
-          let with_new_props = example_app_factory ~props:(object%js
+          let react_elem = example_app_factory ~props:(object%js
               val elapsed = (new%js Js.date_now)##getTime -. start
             end)
           in
-          Reactjs.render with_new_props (Reactjs.get_elem ~id:"container")
+          Reactjs.render ~react_elem (Reactjs.get_elem ~id:"container")
+        (* Get OCaml exception handling! *)
         with Js.Error e ->
           Firebug.console##log e
       ) ~every:100.0

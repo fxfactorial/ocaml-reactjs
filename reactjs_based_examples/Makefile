@@ -9,12 +9,12 @@ js_debug := \
 #--source-map-inline --source-map \
 --disable=shortvar
 
-all: code
-
 code:example.ml
 	ocamlfind ocamlc -g -package ${pkgs} -linkpkg $< -o $@
 	js_of_ocaml ${js_debug} $@ -o $@.js
 
 clean:;@rm -f *.cmi *.cmo *.cmt a.out *.js code
 
-.PHONY:clean code
+all_examples:; -@bash test_all.sh
+
+.PHONY:clean code all

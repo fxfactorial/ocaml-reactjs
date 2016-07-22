@@ -1,11 +1,11 @@
+type 'a javascript_object = 'a Js.t
+
 type 'a component_api = (<isMounted : bool Js.t Js.meth; .. > as 'a) Js.t
 
 module Helpers = struct
   let set_interval ~f ~every =
     Dom_html.window##setInterval (Js.wrap_callback f) every
-
   let get_elem ~id = Dom_html.getElementById id
-
 end
 
 include Helpers
@@ -32,9 +32,6 @@ module Low_level_bindings = struct
       (try require_module "react" with _ -> undef),
       (try require_module "react-dom" with _ -> undef),
       (try require_module "react-dom-server" with _ -> undef)
-
-
-  (* type 'a elem_spec =  *)
 
   class type react_dom_server = object
     method renderToString :
@@ -79,41 +76,35 @@ module Low_level_bindings = struct
       <
         render :
           ('this, react_element Js.t) Js.meth_callback Js.readonly_prop;
-
         getInitialState :
           ('this, 'b Js.t) Js.meth_callback Js.Optdef.t Js.readonly_prop;
-
         getDefaultProps :
           ('this, 'default_props Js.t ) Js.meth_callback Js.Optdef.t Js.readonly_prop;
-
-        (* propTypes : 'props_validator Js.t Js.Optdef.t Js.readonly_prop; *)
-        (* mixins : 'mixin Js.t Js.js_array Js.t Js.Optdef.t Js.readonly_prop; *)
-        (* statics : 'static_functions Js.t Js.Optdef.t Js.readonly_prop; *)
-        (* displayName : Js.js_string Js.t Js.Optdef.t Js.readonly_prop; *)
-        (* (\* Lifecycle Methods *\) *)
-        (* componentWillMount : *)
-        (*   ('this component_api, unit Js.Optdef.t) Js.meth_callback Js.readonly_prop; *)
-        (* componentDidMount : *)
-        (*   ('this component_api, unit Js.Optdef.t) Js.meth_callback Js.readonly_prop; *)
-        (* componentWillReceiveProps : *)
-        (*   ('this component_api, *)
-        (*    'next_props Js.t -> unit Js.Optdef.t) Js.meth_callback Js.readonly_prop; *)
-        (* shouldComponentUpdate : *)
-        (*   ('this component_api, *)
-        (*    'next_props Js.t -> 'next_state Js.t -> bool Js.t) *)
-        (*     Js.meth_callback Js.Optdef.t Js.readonly_prop; *)
-        (* componentWillUpdate : *)
-        (*   ('this component_api, 'next_prop Js.t -> 'next_state Js.t -> unit) *)
-        (*     Js.meth_callback  Js.Optdef.t Js.readonly_prop; *)
-        (* componentDidUpdate : *)
-        (*   ('this component_api, *)
-        (*    'prev_prop Js.t -> 'prev_state Js.t -> unit) *)
-        (*     Js.meth_callback Js.Optdef.t Js.readonly_prop; *)
-        (* componentWillUnmount : *)
-        (*   ('this component_api, unit Js.Optdef.t) *)
-        (*     Js.meth_callback Js.Optdef.t Js.readonly_prop; *)
-        (* this .. lets us also speak about other things arbitrarily *)
-        ..
+        propTypes : 'props_validator Js.t Js.Optdef.t Js.readonly_prop;
+        mixins : 'mixin Js.t Js.js_array Js.t Js.Optdef.t Js.readonly_prop;
+        statics : 'static_functions Js.t Js.Optdef.t Js.readonly_prop;
+        displayName : Js.js_string Js.t Js.Optdef.t Js.readonly_prop;
+        (* Lifecycle Methods *)
+        componentWillMount :
+          ('this, unit) Js.meth_callback Js.Optdef.t Js.readonly_prop;
+        componentDidMount :
+          ('this, unit) Js.meth_callback Js.Optdef.t Js.readonly_prop;
+        componentWillReceiveProps :
+          ('this,
+           'next_props Js.t -> unit) Js.meth_callback Js.Optdef.t Js.readonly_prop;
+        shouldComponentUpdate :
+          ('this, 'next_props Js.t -> 'next_state Js.t -> bool Js.t)
+            Js.meth_callback Js.Optdef.t Js.readonly_prop;
+        componentWillUpdate :
+          ('this, 'next_prop Js.t -> 'next_state Js.t -> unit)
+            Js.meth_callback  Js.Optdef.t Js.readonly_prop;
+        componentDidUpdate :
+          ('this,
+           'prev_prop Js.t -> 'prev_state Js.t -> unit)
+            Js.meth_callback Js.Optdef.t Js.readonly_prop;
+        componentWillUnmount :
+          ('this, unit)
+            Js.meth_callback Js.Optdef.t Js.readonly_prop;
       > Js.t ->
       react_class Js.t Js.meth
 
@@ -155,7 +146,7 @@ let debug thing field =
 
 type element_spec = { class_name: string option; } [@@deriving make]
 
-type children = [`Text_nodes of string list
+type children = [`Text of string list
                 | `Kids of Low_level_bindings.react_element Js.t list ]
 
 type ('this,
@@ -175,7 +166,6 @@ type ('this,
       Low_level_bindings.react_element Js.t; [@main]
     initial_state : (this:'this component_api -> 'initial_state Js.t) option;
     default_props : (this:'this component_api -> 'default_props Js.t) option;
-
     prop_types : 'prop_types Js.t option;
     mixins : 'mixin Js.t list option;
     statics : 'static_functions Js.t option;
@@ -184,15 +174,10 @@ type ('this,
     component_did_mount : (this:'this Js.t -> unit) option;
     component_will_receive_props :
       (this:'this Js.t -> next_prop:'next_props Js.t -> unit) option;
-
-
     should_component_update :
-
       (this:'this Js.t ->
        next_prop:'next_props Js.t ->
        next_state:'next_state Js.t -> bool Js.t) option;
-
-
     component_will_update :
       (this:'this Js.t ->
        next_prop:'next_props Js.t ->
@@ -210,9 +195,8 @@ let create_element
   Low_level_bindings.react_element Js.t =
   let open Js.Unsafe in
   let arr = (match children with
-      | `Text_nodes s -> List.map Js.string s
-      | _ -> [])
-            |> Array.of_list |> Array.map inject
+      | `Text s -> List.map Js.string s
+      | _ -> []) |> Array.of_list |> Array.map inject
   in
   (Array.append
      [|
@@ -239,74 +223,49 @@ let create_class class_opts = let open Js.Optdef in
   let comp = (object%js
     (* Component Specifications *)
     val render = Js.wrap_meth_callback (fun this -> class_opts.render ~this)
-
     val getInitialState =
       (fun f -> Js.wrap_meth_callback (fun this -> f ~this))
       |> map (option class_opts.initial_state)
-
     val getDefaultProps =
       (fun f -> Js.wrap_meth_callback (fun this -> f ~this))
       |> map (option class_opts.default_props)
-
-
-    (* val propTypes = map (option class_opts.prop_types) (fun s -> s) *)
-    (* val mixins = *)
-    (*   map (option class_opts.mixins) (fun m -> Array.of_list m |> Js.array) *)
-    (* val statics = map (option class_opts.statics) (fun s -> s) *)
-    (* val displayName = map (option class_opts.display_name) Js.string *)
-
+    val propTypes = option class_opts.prop_types
+    val mixins = map (option class_opts.mixins) (fun m -> Array.of_list m |> Js.array)
+    val statics = option class_opts.statics
+    val displayName = map (option class_opts.display_name) Js.string
     (* Lifecycle Methods *)
-
-
-    (* val componentWillMount = *)
-    (*   (fun this -> Js.wrap_meth_callback *)
-    (*       (fun f -> f ~this)) *)
-    (*   |> map (option class_opts.component_will_mount) *)
-
-
-    (* val componentDidMount = *)
-    (*   (fun this -> Js.wrap_meth_callback *)
-    (*       (fun f -> f ~this)) *)
-    (*   |> map (option class_opts.component_did_mount) *)
-
-    (* val componentWillReceiveProps = *)
-
-    (*   (fun this next_prop ->  Js.wrap_meth_callback *)
-    (*       (fun f -> f ~this ~next_prop)) *)
-    (*   |> map (option class_opts.component_will_receive_props) *)
-
-
-
-    (* val shouldComponentUpdate = *)
-    (*   (fun f -> Js.wrap_meth_callback *)
-    (*       (fun this next_prop next_state -> f ~this ~next_prop ~next_state)) *)
-    (*   |> map (option class_opts.should_component_update) *)
-
-    (* val componentWillUpdate = *)
-    (*   (fun f -> Js.wrap_meth_callback *)
-    (*       (fun this next_prop next_state -> f ~this ~next_prop ~next_state)) *)
-    (*   |> map (option class_opts.component_will_update) *)
-
-    (* val componentDidUpdate = *)
-    (*   (fun f ->  Js.wrap_meth_callback *)
-    (*       (fun this prev_prop prev_state -> f ~this ~prev_prop ~prev_state)) *)
-    (*   |> map (option class_opts.component_did_update) *)
-
-    (* val componentWillUnmount = *)
-    (*   (fun f -> Js.wrap_meth_callback *)
-    (*       (fun this -> f ~this)) *)
-    (*   |> map (option class_opts.component_will_unmount) *)
-
-
+    val componentWillMount =
+      (fun f -> Js.wrap_meth_callback (fun this -> f ~this))
+      |> map (option class_opts.component_will_mount)
+    val componentDidMount =
+      (fun f -> Js.wrap_meth_callback (fun this -> f ~this))
+      |> map (option class_opts.component_did_mount)
+    val componentWillReceiveProps =
+      (fun f ->  Js.wrap_meth_callback (fun this next_prop -> f ~this ~next_prop))
+      |> map (option class_opts.component_will_receive_props)
+    val shouldComponentUpdate =
+      (fun f -> Js.wrap_meth_callback
+          (fun this next_prop next_state -> f ~this ~next_prop ~next_state))
+      |> map (option class_opts.should_component_update)
+    val componentWillUpdate =
+      (fun f -> Js.wrap_meth_callback
+          (fun this next_prop next_state -> f ~this ~next_prop ~next_state))
+      |> map (option class_opts.component_will_update)
+    val componentDidUpdate =
+      (fun f ->  Js.wrap_meth_callback
+          (fun this prev_prop prev_state -> f ~this ~prev_prop ~prev_state))
+      |> map (option class_opts.component_did_update)
+    val componentWillUnmount =
+      (fun f -> Js.wrap_meth_callback (fun this -> f ~this))
+      |> map (option class_opts.component_will_unmount)
   end)
   in
-
   Low_level_bindings.react##createClass comp
 
 let elem_from_spec spec = create_element_from_class (create_class spec)
 
-let render element dom_elem =
-  Low_level_bindings.reactDOM##render element dom_elem
+let render ~react_elem dom_elem =
+  Low_level_bindings.reactDOM##render react_elem dom_elem
 
 module DOM = struct
 
@@ -333,19 +292,19 @@ module DOM = struct
               `pattern | `polygon | `polyline | `radialGradient |
               `rect | `stop | `svg | `text | `tspan ] [@@deriving show]
 
-  let without_tick tag =
+  let string_of_tag tag =
     (tag |> Js.string)##substring_toEnd 1 |> Js.to_string
 
   type 'a elem_spec =
     (<className: Js.js_string Js.t Js.readonly_prop; .. > as 'a ) Js.t
 
   let make
-      (e_spec : 'a Js.t)
+      ?(elem_spec : 'a javascript_object option)
       ~tag
-      c : Low_level_bindings.react_element Js.t =
-    let elem_name = show_tag tag |> without_tick in
+      (c : children) : Low_level_bindings.react_element Js.t =
+    let elem_name = show_tag tag |> string_of_tag in
     let args = match c with
-      | `Text_nodes s ->
+      | `Text s ->
         Js.Unsafe.inject Js.null ::
         (List.map (fun s -> Js.string s |> Js.Opt.return |> Js.Unsafe.inject) s)
       | _ -> []
@@ -353,6 +312,6 @@ module DOM = struct
     Js.Unsafe.meth_call
       Low_level_bindings.react##._DOM
       elem_name
-      (Array.of_list (Js.Unsafe.inject (Js.Opt.return e_spec) :: args))
+      (Array.of_list (Js.Unsafe.inject (Js.Opt.option elem_spec) :: args))
 
 end

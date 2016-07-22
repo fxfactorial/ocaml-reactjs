@@ -1,7 +1,7 @@
 ReactJS bindings in OCaml
 ============================
 
-These are my bindings to ReactJS, by my count this is the global fifth
+These are my bindings to ReactJS, by my count this is the global sixth
 attempt at binding to React and my own second attempt, its kind of
 hard.
 
@@ -22,40 +22,41 @@ appropriate `require`, node side will also try to load the npm package
 Examples
 =========
 
-This example should be familiar.
+These examples should be familiar...
 
 ```ocaml
-let example_application =
-  Reactjs.make_class_spec
-    (fun ~this ->
-       let elapsed = Js.math##round this##.props##.elapsed /. 100.0 in
-       let seconds = elapsed /. 10.0 in
-       let message = Printf.sprintf
-           "React has been successfully running for %f seconds" seconds
-       in
-       Reactjs.DOM.make ~tag:`p (`Text_nodes [message])
-    )
-  |> Reactjs.create_class
+let counter = Reactjs.(
+    make_class_spec
+      ~initial_state:(fun ~this -> (object%js val count = 0 end))
+      ~component_will_mount:(fun ~this ->
+          print_endline "Component about to mount"
+        )
+      (fun ~this ->
+         DOM.make
+           ~elem_spec:(object%js
+             val onClick = fun () ->
+               this##setState (object%js
+                 val count = this##.state##.count + 1
+               end)
+           end)
+           ~tag:`button
+           (`Text [Printf.sprintf
+                     "Click me, number of clicks: %d"
+                     this##.state##.count])
+      )
+    |> create_class
+  )
 
-let _ =
-  let example_app_factory = Reactjs.create_factory example_application in
-  let start = (new%js Js.date_now)##getTime in
-  Reactjs.set_interval
-    ~f:(fun () ->
-        try
-          let with_new_props = example_app_factory ~props:(object%js
-              val elapsed = (new%js Js.date_now)##getTime -. start
-            end)
-          in
-          Reactjs.render with_new_props (Reactjs.get_elem ~id:"container")
-        with Js.Error e ->
-          Firebug.console##log e;
-      ) ~every:100.0
+let () = Reactjs.(
+    render
+      ~react_elem:(create_element_from_class counter)
+      (get_elem ~id:"container")
+  )
 ```
 
-And here is how you can hook onto the Lifecycle methods of a React
-Component. Note features of the OCaml language that don't exist in
-JavaScript, like labeled arguments and default values.
+...And here is how you can hook onto the lifecycle methods of a
+ReactJS Component. Note features of the OCaml language that don't
+exist in JavaScript, like labeled arguments and default values.
 
 ```ocaml
 let example_application =
@@ -90,7 +91,7 @@ let example_application =
        let message = Printf.sprintf
            "React has been successfully running for %f seconds" seconds
        in
-       Reactjs.DOM.make ~tag:`p (`Text_nodes [message])
+       Reactjs.DOM.make ~tag:`p (`Text [message])
     )
   |> Reactjs.create_class
 
@@ -100,19 +101,23 @@ let _ =
   Reactjs.set_interval
     ~f:(fun () ->
         try
-          let with_new_props = example_app_factory ~props:(object%js
+          let react_elem = example_app_factory ~props:(object%js
               val elapsed = (new%js Js.date_now)##getTime -. start
             end)
           in
-          Reactjs.render with_new_props (Reactjs.get_elem ~id:"container")
+          Reactjs.render ~react_elem (Reactjs.get_elem ~id:"container")
+        (* Get OCaml exception handling! *)
         with Js.Error e ->
           Firebug.console##log e
       ) ~every:100.0
 ```
 
-Compiles any example with with:
+Compiles any example with:
 
 ```shell
 $ ocamlfind ocamlc -package reactjs -linkpkg code.ml
 $ js_of_ocaml a.out -o code.js
 ```
+
+...And see the other examples in directory `reactjs_based_examples`,
+they are translations of the examples in the ReactJS source code.
