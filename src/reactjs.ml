@@ -8,6 +8,9 @@ module Helpers = struct
   let set_interval ~f ~every =
     Dom_html.window##setInterval (Js.wrap_callback f) every
   let get_elem ~id = Dom_html.getElementById id
+  let debug thing field =
+    Firebug.console##log
+      (Js.Unsafe.(meth_call (get thing field) "toString" [||]))
 
 end
 
@@ -171,16 +174,13 @@ module Low_level_bindings = struct
 
 end
 
-let debug thing field =
-  Firebug.console##log
-    (Js.Unsafe.(meth_call (get thing field) "toString" [||]))
 
 type element_spec = { class_name: string option; } [@@deriving make]
 
-(* think React_fragment as well? *)
 type _ react_node =
   | Text : string -> _ react_node
-  | React_element : Low_level_bindings.react_element Js.t -> _ react_node
+  | Elem : Low_level_bindings.react_element Js.t -> _ react_node
+  (* | Fragment : ...... what? *)
 
 type 'a tree = 'a react_node list
 
@@ -227,14 +227,13 @@ let create_element :
   type node_type.
   ?element_opts:element_spec ->
   string ->
-  node_type react_node list ->
+  node_type tree ->
   Low_level_bindings.react_element Js.t
   = fun ?element_opts elem_name children -> Js.Unsafe.(
-      let g = children |> List.map ~f:(function
-          | React_element e ->
-            inject e
-          | Text s -> Js.string s |> inject
-        )
+      let g =
+        children |> List.map ~f:(function
+            | Elem e -> inject e | Text s -> Js.string s |> inject
+          )
       in
       [
         [|
@@ -318,7 +317,7 @@ module DOM = struct
               `col | `colgroup | `data | `datalist | `dd | `del |
               `details | `dfn | `dialog | `div | `dl | `dt | `em |
               `emded | `fieldset | `figcaption | `figure | `footer |
-              `form | `h1 | `h2 | `h3 | `h5 | `h6 | `head | `header |
+              `form | `h1 | `h2 | `h3 | `h4 | `h5 | `h6 | `head | `header |
               `hgroup | `hr | `html | `i | `iframe | `img | `input |
               `ins | `kbd | `keygen | `label | `legend | `li | `link |
               `main | `map | `mark | `menu | `menuitem | `meta | `meter |
@@ -345,14 +344,12 @@ module DOM = struct
     type node_type .
     ?elem_spec : 'a javascript_object ->
     tag:tag ->
-    (* Shorten this type *)
     node_type tree ->
     Low_level_bindings.react_element Js.t
     = fun ?elem_spec ~tag children -> Js.Unsafe.(
         let elem_name = show_tag tag |> string_of_tag in
         let args = children |> List.map ~f:(function
-            | React_element e ->
-              inject e
+            | Elem e -> inject e
             | Text s -> Js.string s |> inject
           )
         in

@@ -42,12 +42,12 @@ configure:
 .PHONY: readme
 
 # Add dir name here when example is ready
-dirs := basic basic-click-counter #quadratic
+dirs := basic basic-click-counter quadratic
 files := $(foreach dir,$(dirs),$(wildcard reactjs_based_examples/$(dir)/*.ml))
 
 dist_clean:; @rm -f README.md
 
-readme:
+readme: dist_clean
 	@cp static/README_base.markdown README.md
 	@for file in ${files} ; do \
 	    bash static/add_to_read_me.sh $$file ; \
