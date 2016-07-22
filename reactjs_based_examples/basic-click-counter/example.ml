@@ -13,10 +13,8 @@ let counter = Reactjs.(
              val onClick = handle_click
            end)
            ~tag:`button
-           (`Text [Printf.sprintf
-                     "Click me, number of clicks: %d"
-                     this##.state##.count])
-      )
+           [Text (Printf.sprintf
+                    "Click me, number of clicks: %d" this##.state##.count)])
     |> create_class
   )
 

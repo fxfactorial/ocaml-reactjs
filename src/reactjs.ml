@@ -177,13 +177,12 @@ let debug thing field =
 
 type element_spec = { class_name: string option; } [@@deriving make]
 
-(* type children = [`text of string list *)
-(*                 | `kids of Low_level_bindings.react_element Js.t list ] *)
-
 (* think React_fragment as well? *)
 type _ react_node =
   | Text : string -> _ react_node
   | React_element : Low_level_bindings.react_element Js.t -> _ react_node
+
+type 'a tree = 'a react_node list
 
 type ('this,
       'initial_state,
@@ -342,20 +341,25 @@ module DOM = struct
   type 'a elem_spec =
     (<className: Js.js_string Js.t Js.readonly_prop; .. > as 'a ) Js.t
 
-  (* let make *)
-  (*     ?(elem_spec : 'a javascript_object option) *)
-  (*     ~tag *)
-  (*     (c : children) : Low_level_bindings.react_element Js.t = *)
-  (*   let elem_name = show_tag tag |> string_of_tag in *)
-  (*   let args = match c with *)
-  (*     | `text s -> *)
-  (*       Js.Unsafe.inject Js.null :: *)
-  (*       (List.map (fun s -> Js.string s |> Js.Opt.return |> Js.Unsafe.inject) s) *)
-  (*     | _ -> [] *)
-  (*   in *)
-  (*   Js.Unsafe.meth_call *)
-  (*     Low_level_bindings.react##._DOM *)
-  (*     elem_name *)
-  (*     (Array.of_list (Js.Unsafe.inject (Js.Opt.option elem_spec) :: args)) *)
+  let make :
+    type node_type .
+    ?elem_spec : 'a javascript_object ->
+    tag:tag ->
+    (* Shorten this type *)
+    node_type tree ->
+    Low_level_bindings.react_element Js.t
+    = fun ?elem_spec ~tag children -> Js.Unsafe.(
+        let elem_name = show_tag tag |> string_of_tag in
+        let args = children |> List.map ~f:(function
+            | React_element e ->
+              inject e
+            | Text s -> Js.string s |> inject
+          )
+        in
+        meth_call
+          Low_level_bindings.react##._DOM
+          elem_name
+          (Array.of_list (inject (Js.Opt.option elem_spec) :: args))
+      )
 
 end

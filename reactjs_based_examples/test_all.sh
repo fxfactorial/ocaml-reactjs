@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 do_all() {
     for i in 'basic' 'basic-click-counter' 'quadratic'; do
 	printf '\tBuilding example: %s\n\n' ${i}

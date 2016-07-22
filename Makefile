@@ -39,13 +39,16 @@ configure:
 .PHONY: build doc test all install uninstall reinstall clean distclean configure
 
 # OASIS_STOP
+.PHONY: readme
 
-pkgs := js_of_ocaml,js_of_ocaml.ppx,runa
+# Add dir name here when example is ready
+dirs := basic basic-click-counter #quadratic
+files := $(foreach dir,$(dirs),$(wildcard reactjs_based_examples/$(dir)/*.ml))
 
-debug:
-	ocamlfind ocamlc -g -package ${pkgs} \
-	src/react_js.ml -linkpkg -o T
-	js_of_ocaml --pretty --debug-info --noinline --source-map-inline \
-	T -o tutorial.js
-	mv tutorial.js example/tutorial
-	open example/tutorial/index.html
+dist_clean:; @rm -f README.md
+
+readme:
+	@cp static/README_base.markdown README.md
+	@for file in ${files} ; do \
+	    bash static/add_to_read_me.sh $$file ; \
+	done
