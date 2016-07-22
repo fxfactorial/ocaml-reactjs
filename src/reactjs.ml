@@ -182,10 +182,8 @@ type element_spec = { class_name: string option; } [@@deriving make]
 
 (* think React_fragment as well? *)
 type _ react_node =
-  | Text : string -> string react_node
-  | React_element :
-      Low_level_bindings.react_element Js.t ->
-    Low_level_bindings.react_element Js.t react_node
+  | Text : string -> _ react_node
+  | React_element : Low_level_bindings.react_element Js.t -> _ react_node
 
 type ('this,
       'initial_state,
@@ -226,20 +224,27 @@ type ('this,
     component_will_unmount : (this:'this Js.t -> unit) option;
   } [@@deriving make]
 
-let create_element ?element_opts elem_name children = Js.Unsafe.(
-    let g = children |> List.map ~f:(function
-        | Text s -> inject (Js.string s)
-        | React_element e -> inject e
-      )
-    in
-    [
-      [|
-        inject (Js.string elem_name);
-        match element_opts with
-          None -> Js.null |> inject
-        | Some spec ->
-          inject (object%js(self)
-            val className =
+let create_element :
+  type node_type.
+  ?element_opts:element_spec ->
+  string ->
+  node_type react_node list ->
+  Low_level_bindings.react_element Js.t
+  = fun ?element_opts elem_name children -> Js.Unsafe.(
+      let g = children |> List.map ~f:(function
+          | React_element e ->
+            inject e
+          | Text s -> Js.string s |> inject
+        )
+      in
+      [
+        [|
+          inject (Js.string elem_name);
+          match element_opts with
+            None -> Js.null |> inject
+          | Some spec ->
+            inject (object%js(self)
+              val className =
               Js.Opt.(map (option spec.class_name) Js.string)
           end)
       |];
