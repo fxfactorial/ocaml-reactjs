@@ -4,13 +4,13 @@ let counter = Reactjs.(
       ~component_will_mount:(fun ~this ->
           print_endline "Component about to mount"
         )
-      (fun ~this ->
+      (fun ~this -> let open Reactjs.Infix in
+        let handle_click = !@(fun () ->
+            this##setState (object%js val count = this##.state##.count + 1 end))
+        in
          DOM.make
            ~elem_spec:(object%js
-             val onClick = fun () ->
-               this##setState (object%js
-                 val count = this##.state##.count + 1
-               end)
+             val onClick = handle_click
            end)
            ~tag:`button
            (`Text [Printf.sprintf

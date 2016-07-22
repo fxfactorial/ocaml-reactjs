@@ -1,3 +1,5 @@
+open StdLabels
+
 type 'a javascript_object = 'a Js.t
 
 type 'a component_api = (<isMounted : bool Js.t Js.meth; .. > as 'a) Js.t
@@ -6,9 +8,38 @@ module Helpers = struct
   let set_interval ~f ~every =
     Dom_html.window##setInterval (Js.wrap_callback f) every
   let get_elem ~id = Dom_html.getElementById id
+
 end
 
 include Helpers
+
+module Infix = struct
+
+  let ( !@ ) = Js.wrap_callback
+
+  let ( !^ ) = Js.Unsafe.inject
+
+  let ( <!> ) (obj : 'a Js.t) field = Js.Unsafe.get obj (Js.string field)
+
+  let ( <?> ) (obj : 'a Js.t) field = Js.Opt.(obj <!> field |> return |> to_option)
+
+  let ( <@> ) (obj : 'a Js.t) field = Js.Optdef.(obj <!> field |> return |> to_option)
+
+  (* merge *)
+  let ( <+> ) (a :'a Js.t) (b : 'b Js.t) : < .. > Js.t = Js.Unsafe.global##.Object##assign a b
+
+  let ( !$ ) (o : 'a Js.t) = Js._JSON##stringify o |> Js.to_string
+
+  let ( !* ) = Js.string
+
+  let ( *! ) = Js.to_string
+
+  let ( $> ) g =
+    g |> Js.str_array |> Js.to_array |> Array.map ~f:Js.to_string |> Array.to_list
+
+  let ( <$ ) g = g |> Array.of_list |> Array.map ~f:Js.string |> Js.array
+
+end
 
 module Low_level_bindings = struct
 
@@ -146,8 +177,15 @@ let debug thing field =
 
 type element_spec = { class_name: string option; } [@@deriving make]
 
-type children = [`Text of string list
-                | `Kids of Low_level_bindings.react_element Js.t list ]
+(* type children = [`text of string list *)
+(*                 | `kids of Low_level_bindings.react_element Js.t list ] *)
+
+(* think React_fragment as well? *)
+type _ react_node =
+  | Text : string -> string react_node
+  | React_element :
+      Low_level_bindings.react_element Js.t ->
+    Low_level_bindings.react_element Js.t react_node
 
 type ('this,
       'initial_state,
@@ -159,8 +197,7 @@ type ('this,
       'prev_props,
       'prev_state,
       'props,
-      'mixin,
-      'extras) class_spec =
+      'mixin) class_spec =
   { render:
       this:'this component_api ->
       Low_level_bindings.react_element Js.t; [@main]
@@ -187,28 +224,30 @@ type ('this,
        prev_prop:'prev_props Js.t ->
        prev_state:'prev_state Js.t -> unit) option;
     component_will_unmount : (this:'this Js.t -> unit) option;
-    extras : ('this Js.t -> 'extras Js.t) option;
   } [@@deriving make]
 
-let create_element
-    elem_name element_opts (children : children) :
-  Low_level_bindings.react_element Js.t =
-  let open Js.Unsafe in
-  let arr = (match children with
-      | `Text s -> List.map Js.string s
-      | _ -> []) |> Array.of_list |> Array.map inject
-  in
-  (Array.append
-     [|
-       inject ((Js.string elem_name));
-       inject (object%js(self)
-         val className =
-           Js.Opt.(map (option element_opts.class_name) Js.string)
-       end);
-     |]
-     arr
+let create_element ?element_opts elem_name children = Js.Unsafe.(
+    let g = children |> List.map ~f:(function
+        | Text s -> inject (Js.string s)
+        | React_element e -> inject e
+      )
+    in
+    [
+      [|
+        inject (Js.string elem_name);
+        match element_opts with
+          None -> Js.null |> inject
+        | Some spec ->
+          inject (object%js(self)
+            val className =
+              Js.Opt.(map (option spec.class_name) Js.string)
+          end)
+      |];
+      Array.of_list g
+    ]
+    |> Array.concat
+    |> Js.Unsafe.meth_call Low_level_bindings.__react "createElement"
   )
-  |> Js.Unsafe.meth_call Low_level_bindings.__react "createElement"
 
 let create_element_from_class class_ =
   Low_level_bindings.react##createElement_WithReactClass class_ Js.null
@@ -298,20 +337,20 @@ module DOM = struct
   type 'a elem_spec =
     (<className: Js.js_string Js.t Js.readonly_prop; .. > as 'a ) Js.t
 
-  let make
-      ?(elem_spec : 'a javascript_object option)
-      ~tag
-      (c : children) : Low_level_bindings.react_element Js.t =
-    let elem_name = show_tag tag |> string_of_tag in
-    let args = match c with
-      | `Text s ->
-        Js.Unsafe.inject Js.null ::
-        (List.map (fun s -> Js.string s |> Js.Opt.return |> Js.Unsafe.inject) s)
-      | _ -> []
-    in
-    Js.Unsafe.meth_call
-      Low_level_bindings.react##._DOM
-      elem_name
-      (Array.of_list (Js.Unsafe.inject (Js.Opt.option elem_spec) :: args))
+  (* let make *)
+  (*     ?(elem_spec : 'a javascript_object option) *)
+  (*     ~tag *)
+  (*     (c : children) : Low_level_bindings.react_element Js.t = *)
+  (*   let elem_name = show_tag tag |> string_of_tag in *)
+  (*   let args = match c with *)
+  (*     | `text s -> *)
+  (*       Js.Unsafe.inject Js.null :: *)
+  (*       (List.map (fun s -> Js.string s |> Js.Opt.return |> Js.Unsafe.inject) s) *)
+  (*     | _ -> [] *)
+  (*   in *)
+  (*   Js.Unsafe.meth_call *)
+  (*     Low_level_bindings.react##._DOM *)
+  (*     elem_name *)
+  (*     (Array.of_list (Js.Unsafe.inject (Js.Opt.option elem_spec) :: args)) *)
 
 end
