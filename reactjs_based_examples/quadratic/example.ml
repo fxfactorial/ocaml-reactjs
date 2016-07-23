@@ -67,10 +67,8 @@ let quadratic_calculator = Reactjs.(
               ([(key, event##.target##.value |> Js.parseFloat |> Js.number_of_float )] >>>
                object%js end)
             in
-            Firebug.console##log this;
             this##setState new_state
         in
-
         let (a, b, c) = this##.state##.a, this##.state##.b, this##.state##.c in
         let root = Js.math##sqrt ((Js.math##pow b 2.0) -. 4.0 *. a *. c) in
         let (denominator, x1, x2) = 2.0 *. a, -.b +. root, -.b -. root in
@@ -93,11 +91,7 @@ let quadratic_calculator = Reactjs.(
                                  ~elem_spec:(object%js
                                    val type_ = !*(string_of_float a)
                                    val value = !^a
-                                   val onChange =
-                                     (fun () ->
-                                        (* Firebug.console##log t; *)
-                                        handle_input_change ~key:"A")
-                                     |> Js.wrap_meth_callback
+                                   val onChange = handle_input_change ~key:"a"
                                  end)
                                  ~tag:`input [])])]);
                 Elem (
@@ -107,9 +101,7 @@ let quadratic_calculator = Reactjs.(
                     ~elem_spec:(object%js
                       val type_ = !*"number"
                       val value = !^b
-                      val onChange = Js.wrap_meth_callback (fun this ->
-                          handle_input_change ~key:"B" this
-                        )
+                      val onChange = handle_input_change ~key:"b"
                     end)
                     ~tag:`label []);
 
