@@ -24,12 +24,15 @@ module Infix = struct
 
   let ( <!> ) (obj : 'a Js.t) field = Js.Unsafe.get obj (Js.string field)
 
-  let ( <?> ) (obj : 'a Js.t) field = Js.Opt.(obj <!> field |> return |> to_option)
+  let ( <?> ) (obj : 'a Js.t) field =
+    Js.Opt.(obj <!> field |> return |> to_option)
 
-  let ( <@> ) (obj : 'a Js.t) field = Js.Optdef.(obj <!> field |> return |> to_option)
+  let ( <@> ) (obj : 'a Js.t) field =
+    Js.Optdef.(obj <!> field |> return |> to_option)
 
   (* merge *)
-  let ( <+> ) (a :'a Js.t) (b : 'b Js.t) : < .. > Js.t = Js.Unsafe.global##.Object##assign a b
+  let ( <+> ) (a :'a Js.t) (b : 'b Js.t) : < .. > Js.t =
+    Js.Unsafe.global##.Object##assign a b
 
   let ( !$ ) (o : 'a Js.t) = Js._JSON##stringify o |> Js.to_string
 
@@ -38,14 +41,17 @@ module Infix = struct
   let ( *! ) = Js.to_string
 
   let ( $> ) g =
-    g |> Js.str_array |> Js.to_array |> Array.map ~f:Js.to_string |> Array.to_list
+    g |> Js.str_array |> Js.to_array
+    |> Array.map ~f:Js.to_string |> Array.to_list
 
-  let ( <$ ) g = g |> Array.of_list |> Array.map ~f:Js.string |> Js.array
+  let ( <$ ) g =
+    g |> Array.of_list |> Array.map ~f:Js.string |> Js.array
 
-  let ( >>> ) (data : (string * Js.Unsafe.any) list) (obj : 'b Js.t) : 'b Js.t =
-    data |> List.iter ~f:(fun (key, o) -> Js.Unsafe.set obj (Js.string key) o);
+  let ( >>> )
+      (data : (string * 'a Js.t) list) (obj : 'b Js.t) : 'b Js.t =
+    data
+    |> List.iter ~f:(fun (key, o) -> Js.Unsafe.set obj (Js.string key) o);
     obj
-
 
 end
 
@@ -117,7 +123,8 @@ module Low_level_bindings = struct
         getInitialState :
           ('this, 'b Js.t) Js.meth_callback Js.Optdef.t Js.readonly_prop;
         getDefaultProps :
-          ('this, 'default_props Js.t ) Js.meth_callback Js.Optdef.t Js.readonly_prop;
+          ('this, 'default_props Js.t )
+            Js.meth_callback Js.Optdef.t Js.readonly_prop;
         propTypes : 'props_validator Js.t Js.Optdef.t Js.readonly_prop;
         mixins : 'mixin Js.t Js.js_array Js.t Js.Optdef.t Js.readonly_prop;
         statics : 'static_functions Js.t Js.Optdef.t Js.readonly_prop;
@@ -129,7 +136,8 @@ module Low_level_bindings = struct
           ('this, unit) Js.meth_callback Js.Optdef.t Js.readonly_prop;
         componentWillReceiveProps :
           ('this,
-           'next_props Js.t -> unit) Js.meth_callback Js.Optdef.t Js.readonly_prop;
+           'next_props Js.t -> unit)
+            Js.meth_callback Js.Optdef.t Js.readonly_prop;
         shouldComponentUpdate :
           ('this, 'next_props Js.t -> 'next_state Js.t -> bool Js.t)
             Js.meth_callback Js.Optdef.t Js.readonly_prop;
@@ -147,7 +155,8 @@ module Low_level_bindings = struct
       react_class Js.t Js.meth
 
     method createFactory :
-      react_class Js.t -> (prop:'new_prop Js.t -> react_element Js.t) Js.meth
+      react_class Js.t ->
+      (prop:'new_prop Js.t -> react_element Js.t) Js.meth
 
     method version : Js.js_string Js.t Js.readonly_prop
     (* method __spread *)
@@ -172,10 +181,11 @@ module Low_level_bindings = struct
       component_api react Js.t
     = __react
 
-  let reactDOM : react_dom Js.t = __reactDOM
+  let react_dom : react_dom Js.t = __reactDOM
 
   (* Only makes sense on the server, hence the unit *)
-  let reactDOMServer : unit -> react_dom_server Js.t = fun () -> __reactDOMServer
+  let react_dom_server : unit -> react_dom_server Js.t =
+    fun () -> __reactDOMServer
 
 end
 
@@ -313,7 +323,13 @@ let create_class class_opts = let open Js.Optdef in
 let elem_from_spec spec = create_element_from_class (create_class spec)
 
 let render ~react_elem dom_elem =
-  Low_level_bindings.reactDOM##render react_elem dom_elem
+  Low_level_bindings.react_dom##render react_elem dom_elem
+
+
+let (react, react_dom, react_dom_server) =
+  Low_level_bindings.react,
+  Low_level_bindings.react_dom,
+  Low_level_bindings.react_dom_server
 
 module DOM = struct
 
