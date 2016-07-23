@@ -170,7 +170,7 @@ module Low_level_bindings = struct
       component_api react Js.t
     = __react
 
-  let react_dom : react_dom Js.t = __reactDOM
+  let react_dom = __reactDOM
 
   (* Only makes sense on the server, hence the unit *)
   let react_dom_server : unit -> react_dom_server Js.t =
