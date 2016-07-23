@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 8018ca818fc784bbb8667ffae87e4882)
+# DO NOT EDIT (digest: a33eabe81f6d7562e06864d629bb48ed)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -18,6 +18,7 @@ true: annot, bin_annot
 "src/reactjs.cmxs": use_reactjs
 "src/reactjs.cma": oasis_library_reactjs_byte
 <src/*.ml{,i,y}>: oasis_library_reactjs_byte
+<src/*.ml{,i,y}>: pkg_commonjs_of_ocaml
 <src/*.ml{,i,y}>: pkg_js_of_ocaml
 <src/*.ml{,i,y}>: pkg_js_of_ocaml.ppx
 <src/*.ml{,i,y}>: pkg_lwt

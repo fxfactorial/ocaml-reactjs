@@ -1,9 +1,9 @@
 # OASIS_START
-# DO NOT EDIT (digest: c0f3414589885aa0243450c6723c0427)
+# DO NOT EDIT (digest: f5a20f1a39359a54d1753d00ca66ee3b)
 version = "0.0.1"
 description = "js_of_ocaml bindings for Reactjs"
 requires =
-"js_of_ocaml js_of_ocaml.ppx lwt.ppx lwt ppx_deriving.show ppx_deriving.make"
+"js_of_ocaml js_of_ocaml.ppx lwt.ppx lwt ppx_deriving.show ppx_deriving.make commonjs_of_ocaml"
 archive(byte) = "reactjs.cma"
 archive(byte, plugin) = "reactjs.cma"
 exists_if = "reactjs.cma"

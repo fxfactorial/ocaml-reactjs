@@ -149,7 +149,7 @@ let quadratic_calculator = Reactjs.(
             make ~tag:`label
               [Text (Printf.sprintf "%s: " key);
                Elem (make ~elem_spec:(object%js
-                       val type_ = Js.string "number"
+                       val type_ = !*"number"
                        val value = !^init_value
                        val onChange = handle_input_change ~key
                      end) ~tag:`input [])]

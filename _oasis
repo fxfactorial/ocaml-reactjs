@@ -25,7 +25,9 @@ Library reactjs
     lwt.ppx,
     lwt (>= 2.5.2),
     ppx_deriving.show,
-    ppx_deriving.make
+    ppx_deriving.make,
+    commonjs,
+    commonjs_ppx
 
 # Library high_level
 #   FindlibName: high_level

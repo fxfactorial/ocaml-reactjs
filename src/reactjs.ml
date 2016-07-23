@@ -57,25 +57,6 @@ end
 
 module Low_level_bindings = struct
 
-  let (__react, __reactDOM, __reactDOMServer) :
-    'a Js.t * 'a Js.t * 'a Js.t = let open Infix in
-    let open Js.Unsafe in
-    (* let undef = Js. *)
-    let undef = Js.Unsafe.eval_string "undefined" in
-    let require_module s = fun_call (js_expr "require") [|!^(!*s)|] in
-    try
-      (* Need to keep it this way, otherwise jsoo will optimize it
-         out, also add this to js_of_ocaml *)
-      Js.typeof (eval_string "window") = Js.string "undefined";
-      (* In Browser *)
-      global##.React,
-      global##.ReactDOM,
-      undef
-    with Js.Error _ ->
-      (* In Node *)
-      (try require_module "react" with _ -> undef),
-      (try require_module "react-dom" with _ -> undef),
-      (try require_module "react-dom-server" with _ -> undef)
 
   class type react_dom_server = object
     method renderToString :
@@ -174,6 +155,14 @@ module Low_level_bindings = struct
   and react_class = object
 
   end
+
+  let (__react, __reactDOM, __reactDOMServer) :
+    'react Js.t * 'react_dom Js.t * react_dom_server Js.t
+    = Js.Unsafe.(
+      [%require_or_default "react" global##.React],
+      [%require_or_default "react-dom" global##.ReactDOM],
+      [%require_or_default "react-dom/server" global##.dummy]
+    )
 
   let react :
     'this .
