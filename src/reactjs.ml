@@ -18,7 +18,7 @@ include Helpers
 
 module Infix = struct
 
-  let ( !@ ) = Js.wrap_callback
+  let ( !@ ) = Js.wrap_meth_callback
 
   let ( !^ ) = Js.Unsafe.inject
 
@@ -42,17 +42,21 @@ module Infix = struct
 
   let ( <$ ) g = g |> Array.of_list |> Array.map ~f:Js.string |> Js.array
 
+  let ( >>> ) (data : (string * Js.Unsafe.any) list) (obj : 'b Js.t) : 'b Js.t =
+    data |> List.iter ~f:(fun (key, o) -> Js.Unsafe.set obj (Js.string key) o);
+    obj
+
+
 end
 
 module Low_level_bindings = struct
 
   let (__react, __reactDOM, __reactDOMServer) :
-    'a Js.t * 'a Js.t * 'a Js.t =
+    'a Js.t * 'a Js.t * 'a Js.t = let open Infix in
     let open Js.Unsafe in
+    (* let undef = Js. *)
     let undef = Js.Unsafe.eval_string "undefined" in
-    let require_module s =
-      fun_call (js_expr "require") [|inject (Js.string s)|]
-    in
+    let require_module s = fun_call (js_expr "require") [|!^(!*s)|] in
     try
       (* Need to keep it this way, otherwise jsoo will optimize it
          out, also add this to js_of_ocaml *)
@@ -164,7 +168,8 @@ module Low_level_bindings = struct
 
   let react :
     'this .
-      (< isMounted : bool Js.t Js.meth; .. > as 'this) component_api react Js.t
+      (< isMounted : bool Js.t Js.meth; .. > as 'this)
+      component_api react Js.t
     = __react
 
   let reactDOM : react_dom Js.t = __reactDOM
@@ -174,13 +179,12 @@ module Low_level_bindings = struct
 
 end
 
-
 type element_spec = { class_name: string option; } [@@deriving make]
 
 type _ react_node =
   | Text : string -> _ react_node
   | Elem : Low_level_bindings.react_element Js.t -> _ react_node
-  (* | Fragment : ...... what? *)
+  (* | Fragment : _ react_node list -> _ react_node *)
 
 type 'a tree = 'a react_node list
 
@@ -224,7 +228,7 @@ type ('this,
   } [@@deriving make]
 
 let create_element :
-  type node_type.
+  type node_type another.
   ?element_opts:element_spec ->
   string ->
   node_type tree ->
@@ -232,7 +236,9 @@ let create_element :
   = fun ?element_opts elem_name children -> Js.Unsafe.(
       let g =
         children |> List.map ~f:(function
-            | Elem e -> inject e | Text s -> Js.string s |> inject
+            | Elem e -> inject e
+            | Text s -> Js.string s |> inject
+            (* | Fragment l ->  *)
           )
       in
       [
@@ -322,7 +328,7 @@ module DOM = struct
               `ins | `kbd | `keygen | `label | `legend | `li | `link |
               `main | `map | `mark | `menu | `menuitem | `meta | `meter |
               `nav | `noscript |
-              `object_ [@printer fun fmt -> fprintf fmt "object"] |
+              `object_ [@printer fun fmt -> fprintf fmt "`object"] |
               `ol | `optgroup | `option | `output | `p | `param | `picture |
               `pre | `progress | `q | `rp | `rt | `ruby | `s | `samp |
               `script | `section | `select | `small | `source | `span |
@@ -351,6 +357,7 @@ module DOM = struct
         let args = children |> List.map ~f:(function
             | Elem e -> inject e
             | Text s -> Js.string s |> inject
+            (* | Fragment l -> *)
           )
         in
         meth_call

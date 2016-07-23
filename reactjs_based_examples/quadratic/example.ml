@@ -62,10 +62,13 @@ let quadratic_calculator = Reactjs.(
         )
       (fun ~this -> let open Infix in
         let handle_input_change =
-          fun ?(key="") event ->
-            Firebug.console##log event;
-            Js.Unsafe.(obj [|(key, !^(Js.parseFloat event##.target##.value))|])
-            |> this##setState
+          fun ~key event ->
+            let new_state =
+              ([(key, event##.target##.value |> Js.parseFloat |> Js.number_of_float )] >>>
+               object%js end)
+            in
+            Firebug.console##log this;
+            this##setState new_state
         in
 
         let (a, b, c) = this##.state##.a, this##.state##.b, this##.state##.c in
@@ -75,21 +78,41 @@ let quadratic_calculator = Reactjs.(
                [Elem (make ~tag:`strong
                         [Elem (make ~tag:`em [Text "ax"]);
                          Elem (make ~tag:`sup [Text "2"]);
-                         Text " + ";
-                         Elem (make ~tag:`em [Text "bx"]);
-                         Text " + ";
-                         Elem (make ~tag:`em [Text "c"]);
+                         Text " + "; Elem (make ~tag:`em [Text "bx"]);
+                         Text " + "; Elem (make ~tag:`em [Text "c"]);
                          Text " = 0"]);
-                Elem (make ~tag:`h4 [Text "Solve for "; Elem (make ~tag:`em [Text "x"])]);
-                Elem (make ~tag:`p
-                        [Elem (make ~tag:`label
-                                 [Text "a: ";
-                                  Elem (make
-                                          ~elem_spec:(object%js
-                                            val type_ = !*(string_of_float a)
-                                            val onChange = !@(handle_input_change ~key:"A")
-                                          end)
-                                          ~tag:`input [])])])
+                Elem (make ~tag:`h4 [Text "Solve for ";
+                                     Elem (make ~tag:`em [Text "x"])]);
+                Elem
+                  (make ~tag:`p
+                     [Elem
+                        (make ~tag:`label
+                           [Text "a: ";
+                            Elem
+                              (make
+                                 ~elem_spec:(object%js
+                                   val type_ = !*(string_of_float a)
+                                   val value = !^a
+                                   val onChange =
+                                     (fun () ->
+                                        (* Firebug.console##log t; *)
+                                        handle_input_change ~key:"A")
+                                     |> Js.wrap_meth_callback
+                                 end)
+                                 ~tag:`input [])])]);
+                Elem (
+                  make ~tag:`br []);
+                Elem (
+                  make
+                    ~elem_spec:(object%js
+                      val type_ = !*"number"
+                      val value = !^b
+                      val onChange = Js.wrap_meth_callback (fun this ->
+                          handle_input_change ~key:"B" this
+                        )
+                    end)
+                    ~tag:`label []);
+
                ]))
     |> create_class
   )
