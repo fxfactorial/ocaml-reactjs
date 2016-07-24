@@ -322,7 +322,7 @@ let (react, react_dom, react_dom_server) =
 
 module DOM = struct
 
-  type tag = [`abbr | `address | `area | `article | `aside | `audio |
+  type tag = [`a | `abbr | `address | `area | `article | `aside | `audio |
               `b | `base | `bdi | `bdo | `big | `blockquote | `body |
               `br | `button | `canvas | `caption | `cite | `code |
               `col | `colgroup | `data | `datalist | `dd | `del |
