@@ -52,3 +52,5 @@ Also see
 [ocaml-mailing-list](https://github.com/fxfactorial/ocaml-mailing-list)
 for more example source code, include how to render on the server with
 `nodejs`.
+
+[//]: # "Do not write anything below here, the code examples will be appended"
