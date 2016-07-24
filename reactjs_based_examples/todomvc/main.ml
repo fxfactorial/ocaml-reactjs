@@ -116,15 +116,21 @@ let root app =
                          end) 
                            [Elem (DOM.make ~tag:`li [Elem (DOM.make ~tag:`a ~elem_spec:(object%js
                                                              val href = !*"#/"
-                                                             val className = !*"selected"
+                                                             val className = (match app.tab with
+                                                                 | All -> !*"selected"
+                                                                 | _ -> !*"")
                                                            end) [Text "All"])]);
                             Elem (DOM.make ~tag:`li [Elem (DOM.make ~tag:`a ~elem_spec:(object%js
                                                              val href = !*"#/active"
-                                                             val className = !*""
+                                                             val className = (match app.tab with
+                                                                 | Active -> !*"selected"
+                                                                 | _ -> !*"")
                                                            end) [Text "Active"])]);
                             Elem (DOM.make ~tag:`li [Elem (DOM.make ~tag:`a ~elem_spec:(object%js
                                                              val href = !*"#/completed"
-                                                             val className = !*""
+                                                             val className = (match app.tab with
+                                                                 | Completed -> !*"selected"
+                                                                 | _ -> !*"")
                                                            end) [Text "Completed"])])]);
                    Elem (DOM.make ~tag:`button ~elem_spec:(object%js
                            val className = !*"clear-completed"
