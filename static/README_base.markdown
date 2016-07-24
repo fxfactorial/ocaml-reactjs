@@ -51,7 +51,9 @@ $ make generate_pdf
 ```
 
 And then the `reactjs_bindings.pdf` will be built in the root of the
-directory.
+directory. It should look like:
+
+![img](./static/generated_docs_as_pdf.png)
 
 Contributing
 ============
