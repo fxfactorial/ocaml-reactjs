@@ -345,7 +345,7 @@ module DOM = struct
               `rect | `stop | `svg | `text | `tspan ] [@@deriving show]
 
   let string_of_tag tag =
-    (tag |> Js.string)##substring_toEnd 1 |> Js.to_string
+    (show_tag tag |> Js.string)##substring_toEnd 1 |> Js.to_string
 
   type 'a elem_spec =
     (<className: Js.js_string Js.t Js.readonly_prop; .. > as 'a ) Js.t
@@ -356,7 +356,7 @@ module DOM = struct
     tree ->
     Low_level_bindings.react_element Js.t
     = fun ?elem_spec ~tag children -> Js.Unsafe.(
-        let elem_name = show_tag tag |> string_of_tag in
+        let elem_name = tag |> string_of_tag in
         let args = children |> List.map ~f:(function
             | Elem e -> inject e
             | Text s -> Js.string s |> inject
