@@ -38,7 +38,7 @@ everything of `React` yet, and the library can still be made more
 strongly typed. 
 
 Right now a `JSX` like ppx is needed since writing out the `Text`,
-`Elem` GADTs can be more strain on the brain and `JSX` lets you see
+`Elem` variants can be more strain on the brain and `JSX` lets you see
 the structure of the element you're making more easily.
 
 Before opening a PR, be sure to test all the existing examples. You
@@ -47,7 +47,7 @@ with `make all_examples`. More examples added are always appreciated
 and you can do it by:
 
 0. cd reactjs_based_examples
-1. cp -R basic <new_example_name>
+1. cp -R basic your_new_example
 
 and add your example's directory name to the `Makefile`'s `dirs`
 variable in the root of the project, 
