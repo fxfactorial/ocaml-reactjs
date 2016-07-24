@@ -43,6 +43,16 @@ You can also do: `make doc` in the repo, that will create a directory
 called `api.docdir` and in there you open the `index.html` for pretty
 generated documentation.
 
+If you're okay with doing: `brew cask install wkhtmltopdf`, then you
+can get a PDF generated from the OCaml documentation. do 
+
+```shell
+$ make generate_pdf
+```
+
+And then the `reactjs_bindings.pdf` will be built in the root of the
+directory.
+
 Contributing
 ============
 

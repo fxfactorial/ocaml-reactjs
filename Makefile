@@ -52,3 +52,13 @@ readme: dist_clean
 	@for file in ${files} ; do \
 	    bash static/add_to_read_me.sh $$file ; \
 	done
+
+pdf_doc := reactjs_bindings.pdf
+
+# Install wkhtmltopdf with brew cask install wkhtmltopdf
+generate_pdf:doc
+	@printf '\n\tCreating a PDF of the documentation\n'
+	@(cd api.docdir; \
+	wkhtmltopdf  --load-error-handling ignore * ${pdf_doc})
+	@mv api.docdir/${pdf_doc} .
+	@printf '\n\tCreated %s!\n' ${pdf_doc}
