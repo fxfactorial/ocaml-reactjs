@@ -25,6 +25,24 @@ that `React`, and `ReactDOM` exist (on node they will do the
 appropriate `require`, node side will also try to load the npm package
 `react-dom`)
 
+Documentation
+=============
+
+See this blog [post](http://hyegar.com/2016/07/17/js-of-ocaml-usage/)
+to get a better understanding of OCaml typing of JavaScript objects
+and such, (explains the `##` syntax extension).
+
+The `mli` is commented and the doc strings should come up for you with
+`merlin`. I also recommend using `ocp-browser`, this is a program that
+is installed via `opam install ocp-index` and it gives you a nice high
+level way to see the API: 
+
+![img](./static/api_image.png)
+
+You can also do: `make doc` in the repo, that will create a directory
+called `api.docdir` and in there you open the `index.html` for pretty
+generated documentation.
+
 Contributing
 ============
 
@@ -46,8 +64,10 @@ can build them all at once from the `reactjs_based_examples` directory
 with `make all_examples`. More examples added are always appreciated
 and you can do it by:
 
-0. cd reactjs_based_examples
-1. cp -R basic your_new_example
+```shell
+$ cd reactjs_based_examples
+$ cp -R basic your_new_example
+```
 
 and add your example's directory name to the `Makefile`'s `dirs`
 variable in the root of the project, 
@@ -72,9 +92,6 @@ Also see
 for more example source code, include how to render on the server with
 `nodejs`.
 
-See this blog [post](http://hyegar.com/2016/07/17/js-of-ocaml-usage/)
-to get a better understanding of OCaml typing of JavaScript objects
-and such, (explains the `##` syntax extension).
 
 [//]: # "Do not write anything below here, the code examples will be appended"
 

@@ -1,5 +1,5 @@
 (** OCaml bindings to ReactJS, interact with the function provided by
-    the top level modules {Infix}, {Helpers}, and {Reactjs} *)
+    the top level modules {b Infix}, {b Helpers}, and {b Reactjs} *)
 
 type 'a javascript_object = 'a Js.t
 (** A JavaScript object made via:
@@ -55,10 +55,10 @@ sig
   (** Call stringify on any Object *)
   val ( !$ ) : 'a Js.t -> string
 
-  (** Shorthand for {Js.string} *)
+  (** Shorthand for {b Js.string} *)
   val ( !* ) : string -> Js.js_string Js.t
 
-  (** Shorthand for {Js.to_string} *)
+  (** Shorthand for {b Js.to_string} *)
   val ( *! ) : Js.js_string Js.t -> string
 
   (** Convert a JavaScript string array into an Ocaml list of strings *)
@@ -189,7 +189,7 @@ type react_node =
 (** Simple alias of a list of react_nodes *)
 type tree = react_node list
 
-(** Create and pass one of these records to {create_class}, this is
+(** Create and pass one of these records to {b create_class}, this is
     how you provide functions for a component lifecycle, props, state and
     other things. *)
 type ('a, 'initial_state, 'default_props, 'prop_types, 'static_functions,
@@ -222,7 +222,7 @@ type ('a, 'initial_state, 'default_props, 'prop_types, 'static_functions,
 } constraint 'a = < isMounted : bool Js.t Js.meth; .. >
 
 (** Creates a class spec record for you to pass to
-    {create_class}. Only requires the last argument, which is your
+    {b create_class}. Only requires the last argument, which is your
     render function. To provide a function for a lifecycle method,
     simply provide a function to whatever optional function you
     want. *)
@@ -272,7 +272,7 @@ val create_class :
    'j)
     class_spec -> Low_level_bindings.react_class Js.t
 
-(** Short cut for making a ReactElement given a {class_spec} *)
+(** Short cut for making a ReactElement given a {b class_spec} *)
 val elem_from_spec :
   (< isMounted : bool Js.t Js.meth; .. >, 'a, 'b, 'c, 'd, 'e, 'f, 'g, 'h, 'i,
    'j)
