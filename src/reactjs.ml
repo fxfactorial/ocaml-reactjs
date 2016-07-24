@@ -180,12 +180,12 @@ end
 
 type element_spec = { class_name: string option; } [@@deriving make]
 
-type _ react_node =
-  | Text : string -> _ react_node
-  | Elem : Low_level_bindings.react_element Js.t -> _ react_node
+type react_node =
+  | Text of string
+  | Elem of Low_level_bindings.react_element Js.t
   (* | Fragment : _ react_node list -> _ react_node *)
 
-type 'a tree = 'a react_node list
+type tree = react_node list
 
 type ('this,
       'initial_state,
@@ -227,10 +227,9 @@ type ('this,
   } [@@deriving make]
 
 let create_element :
-  type node_type another.
   ?element_opts:element_spec ->
   string ->
-  node_type tree ->
+  tree ->
   Low_level_bindings.react_element Js.t
   = fun ?element_opts elem_name children -> Js.Unsafe.(
       let g =
@@ -352,10 +351,9 @@ module DOM = struct
     (<className: Js.js_string Js.t Js.readonly_prop; .. > as 'a ) Js.t
 
   let make :
-    type node_type .
     ?elem_spec : 'a javascript_object ->
     tag:tag ->
-    node_type tree ->
+    tree ->
     Low_level_bindings.react_element Js.t
     = fun ?elem_spec ~tag children -> Js.Unsafe.(
         let elem_name = show_tag tag |> string_of_tag in
