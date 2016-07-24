@@ -9,6 +9,7 @@ Homepage:    https://github.com/fxfactorial/ocaml-reactjs
 License:     BSD-3-clause
 Plugins:     META (0.4), DevFiles (0.4)
 BuildTools: ocamlbuild
+OCamlVersion: >= 4.02.0
 
 Description: OCaml bindings to ReactJS
 
