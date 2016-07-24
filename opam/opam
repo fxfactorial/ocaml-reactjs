@@ -26,6 +26,7 @@ build-test: [
 depends: [
   "js_of_ocaml" {>= "2.8.1"}
   "lwt" {>= "2.5.2"}
+  "commonjs_of_ocaml" {>= "0.1.0"}
   "ppx_deriving" {>= "4.0"}
   "oasis" {build & >= "0.4"}
   "ocamlbuild" {build}
