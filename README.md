@@ -72,6 +72,10 @@ Also see
 for more example source code, include how to render on the server with
 `nodejs`.
 
+See this blog [post](http://hyegar.com/2016/07/17/js-of-ocaml-usage/)
+to get a better understanding of OCaml typing of JavaScript objects
+and such, (explains the `##` syntax extension).
+
 [//]: # "Do not write anything below here, the code examples will be appended"
 
 # reactjs_based_examples/basic
