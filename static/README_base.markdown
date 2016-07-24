@@ -37,7 +37,7 @@ The `mli` is commented and the doc strings should come up for you with
 is installed via `opam install ocp-index` and it gives you a nice high
 level way to see the API: 
 
-![img](./static/api_image.png)
+![img](./static/reactjs_ocp_browser.gif)
 
 You can also do: `make doc` in the repo, that will create a directory
 called `api.docdir` and in there you open the `index.html` for pretty
@@ -53,7 +53,7 @@ $ make generate_pdf
 And then the `reactjs_bindings.pdf` will be built in the root of the
 directory. It should look like:
 
-![img](./static/generated_docs_as_pdf.png)
+![img](./static/reactjs_doc_pdf.gif)
 
 Contributing
 ============
