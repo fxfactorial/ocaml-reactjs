@@ -17,7 +17,23 @@ $ opam pin add -y reactjs https://github.com/fxfactorial/ocaml-reactjs
 The bindings should work on `node` or in the browser, both will assume
 that `React`, and `ReactDOM` exist (on node they will do the
 appropriate `require`, node side will also try to load the npm package
-`react-dom-server`)
+`react-dom`)
+
+Contributing
+============
+
+Contributions of any kind are appreciated. If you're updating this
+readme, then be update `static/README_base.markdown` and then run
+`make readme`. 
+
+For the source code itself, be aware that it uses some more advanced
+features of the type system and can be mental pain. I haven't exposed
+everything of `React` yet, and the library can still be made more
+strongly typed. 
+
+Right now a `JSX` like ppx is needed since writing out the `Text`,
+`Elem` GADTs can be more strain on the brain and `JSX` lets you see
+the structure of the element you're making more easily.
 
 Examples
 ========
