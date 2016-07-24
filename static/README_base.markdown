@@ -32,3 +32,7 @@ $ ocamlfind ocamlc -package reactjs -linkpkg code.ml
 $ js_of_ocaml a.out -o code.js
 ```
 
+Also see
+[ocaml-mailing-list](https://github.com/fxfactorial/ocaml-mailing-list)
+for more example source code, include how to render on the server with
+`nodejs`.
