@@ -15,6 +15,7 @@ build: [
 ]
 install: ["ocaml" "setup.ml" "-install"]
 available: [ ocaml-version >= "4.02.0"]
+build-doc: [ "ocaml" "setup.ml" "-doc" ]
 remove: [
   ["ocamlfind" "remove" "reactjs"]
 ]
