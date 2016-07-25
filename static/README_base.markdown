@@ -73,8 +73,10 @@ the structure of the element you're making more easily.
 
 Before opening a PR, be sure to test all the existing examples. You
 can build them all at once from the `reactjs_based_examples` directory
-with `make all_examples`. More examples added are always appreciated
-and you can do it by:
+with `make all_examples`, or `make -C reactjs_based_examples
+all_examples` from the root directory.
+
+More examples added are always appreciated and you can do it by:
 
 ```shell
 $ cd reactjs_based_examples

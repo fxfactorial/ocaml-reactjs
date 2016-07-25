@@ -407,7 +407,7 @@ module Common_components = struct
         Elem (DOM.make ~elem_spec:(attrs <+> custom) ~tag:`link [])
     )
 
-  let ahref ~href txt = Infix.(
+  let ahref ?(href="") txt = Infix.(
       Elem (DOM.make
               ~elem_spec:(object%js val href = !*href end)
               ~tag:`a
