@@ -353,10 +353,11 @@ module DOM = struct
 
   let make :
     ?elem_spec : 'a javascript_object ->
+    ?class_name : string ->
     tag:tag ->
     tree ->
     Low_level_bindings.react_element Js.t
-    = fun ?elem_spec ~tag children -> Js.Unsafe.(
+    = fun ?elem_spec ?class_name ~tag children -> Js.Unsafe.(Infix.(
         let elem_name = tag |> string_of_tag in
         let args = children |> List.map ~f:(function
             | Elem e -> inject e
@@ -364,11 +365,30 @@ module DOM = struct
             (* | Fragment l -> *)
           )
         in
-        meth_call
-          Low_level_bindings.react##._DOM
-          elem_name
-          (Array.of_list (inject (Js.Opt.option elem_spec) :: args))
-      )
+        match elem_spec, class_name with
+        | None, None ->
+          meth_call
+            Low_level_bindings.react##._DOM
+            elem_name
+            (Array.of_list (inject Js.null :: args))
+        | (Some e_spec, None) ->
+          meth_call
+            Low_level_bindings.react##._DOM
+            elem_name
+            (Array.of_list ((inject e_spec) :: args))
+        | (Some e_spec, Some c_name) ->
+          (* Mutates the elem_spec by making className take
+             precedence *)
+          meth_call
+            Low_level_bindings.react##._DOM
+            elem_name
+            (Array.of_list ((inject ([("className", !*c_name)] >>> e_spec)) :: args))
+        | (None, Some c_name) ->
+          meth_call
+            Low_level_bindings.react##._DOM
+            elem_name
+            (Array.of_list ((inject (object%js val className = !*c_name end)) :: args))
+      ))
 
 end
 

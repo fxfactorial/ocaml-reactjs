@@ -330,9 +330,15 @@ sig
   type 'a elem_spec = 'a Js.t
     constraint 'a = < className : Js.js_string Js.t Js.readonly_prop; .. >
 
-  (** Create your ReactElement *)
+(** Create your ReactElement using this helper function. Since
+    className is such a common operation, you can provide a
+    short cut for it with ~class_name instead of object%js val
+    className = !*"foo" end. If elem_spec and class_name are
+    both provided then class_name will mutate elem_spec with
+    className := class_name *)
   val make :
     ?elem_spec:'a javascript_object ->
+    ?class_name:string ->
     tag:tag -> tree -> Low_level_bindings.react_element Js.t
 end
 
