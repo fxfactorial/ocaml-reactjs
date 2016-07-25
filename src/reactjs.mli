@@ -329,3 +329,12 @@ sig
     ?elem_spec:'a javascript_object ->
     tag:tag -> tree -> Low_level_bindings.react_element Js.t
 end
+
+(** Helper functions to create commonly needed components *)
+module Common_components : sig
+
+  (** Creates a `link element, offers you a chance to add other
+      attributes to the stylesheet. *)
+  val stylesheet : ?custom_opts:'a Js.t -> href:string -> unit -> react_node
+
+end

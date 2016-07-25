@@ -370,3 +370,21 @@ module DOM = struct
       )
 
 end
+
+module Common_components = struct
+
+  let stylesheet ?custom_opts ~href () = Infix.(
+      let attrs = object%js
+        val ref = !*"stylesheet"
+        val href = !*href
+      end
+      in
+      match custom_opts with
+        None ->
+        Elem (DOM.make ~elem_spec:attrs ~tag:`link [])
+      | Some custom ->
+        Elem (DOM.make ~elem_spec:(attrs <+> custom) ~tag:`link [])
+
+    )
+
+end
