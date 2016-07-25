@@ -1,8 +1,8 @@
 # -*- conf -*-
 OASISFormat: 0.4
-Name:        react_js
+Name:        reactjs
 Version:     0.0.1
-Synopsis:    js_of_ocaml bindings for Reactjs
+Synopsis:    OCaml to JavaScript bindings for ReactJS
 Authors:     Edgar Aroutiounian <edgar.factorial@gmail.com>
 Maintainers: Edgar Aroutiounian <edgar.factorial@gmail.com>
 Homepage:    https://github.com/fxfactorial/ocaml-reactjs

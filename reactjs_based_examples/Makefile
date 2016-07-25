@@ -1,13 +1,13 @@
 pkgs := reactjs
-# js_debug := --debug-info --no-inline \
-# --pretty --linkall --source-map-inline --source-map \
-# --disable=optcall --disable=share --disable=shortvar \
-# --disable=deadcode --disable=genprim
+js_debug := --debug-info --no-inline \
+--pretty --linkall --source-map-inline --source-map \
+--disable=optcall --disable=share --disable=shortvar \
+--disable=deadcode --disable=genprim
 
-js_debug := \
---enable=debuginfo --disable=inline --enable=pretty \
-#--source-map-inline --source-map \
---disable=shortvar
+# js_debug := \
+# --enable=debuginfo --disable=inline --enable=pretty \
+# --source-map-inline --source-map \
+# --disable=shortvar
 
 code:example.ml
 	ocamlfind ocamlc -g -package ${pkgs} -linkpkg $< -o $@
