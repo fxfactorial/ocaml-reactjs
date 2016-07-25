@@ -4,18 +4,6 @@ type 'a javascript_object = 'a Js.t
 
 type 'a component_api = (<isMounted : bool Js.t Js.meth; .. > as 'a) Js.t
 
-module Helpers = struct
-  let set_interval ~f ~every =
-    Dom_html.window##setInterval (Js.wrap_callback f) every
-  let get_elem ~id = Dom_html.getElementById id
-  let debug thing field =
-    Firebug.console##log
-      (Js.Unsafe.(meth_call (get thing field) "toString" [||]))
-
-end
-
-include Helpers
-
 module Infix = struct
 
   let ( !@ ) = Js.wrap_meth_callback
@@ -38,7 +26,7 @@ module Infix = struct
 
   let ( !* ) = Js.string
 
-  let ( *! ) = Js.to_string
+  let ( !& ) = Js.to_string
 
   let ( $> ) g =
     g |> Js.str_array |> Js.to_array
@@ -55,8 +43,21 @@ module Infix = struct
 
 end
 
-module Low_level_bindings = struct
+module Helpers = struct
+  let set_interval ~f ~every =
+    Dom_html.window##setInterval (Js.wrap_callback f) every
+  let get_elem ~id = Dom_html.getElementById id
+  let debug thing field =
+    Firebug.console##log
+      (Js.Unsafe.(meth_call (get thing field) "toString" [||]))
+  let real_type_name (o : 'a Js.t) =
+    Infix.(!&((o <!> "constructor") <!> "name"))
 
+end
+
+include Helpers
+
+module Low_level_bindings = struct
 
   class type react_dom_server = object
     method renderToString :

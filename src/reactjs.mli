@@ -18,12 +18,18 @@ module Helpers :
 sig
   val set_interval :
     f:(unit -> unit) -> every:float -> Dom_html.interval_id
+
+  (** alias of document.getElementById *)
   val get_elem : id:string -> Dom_html.element Js.t
+
   val debug : 'a -> 'b -> unit
+
+  (** Calls constructor.name on any object *)
+  val real_type_name : < .. > Js.t -> string
 end
-val set_interval : f:(unit -> unit) -> every:float -> Dom_html.interval_id
-val get_elem : id:string -> Dom_html.element Js.t
-val debug : 'a -> 'b -> unit
+
+(* Nice trick to avoid having to type all those signatures again *)
+include (module type of Helpers)
 
 (** Infix and prefix functions for easier go between OCaml and
     JavaScript values *)
@@ -59,7 +65,7 @@ sig
   val ( !* ) : string -> Js.js_string Js.t
 
   (** Shorthand for {b Js.to_string} *)
-  val ( *! ) : Js.js_string Js.t -> string
+  val ( !& ) : Js.js_string Js.t -> string
 
   (** Convert a JavaScript string array into an Ocaml list of strings *)
   val ( $> ) : Js.string_array Js.t -> string list
