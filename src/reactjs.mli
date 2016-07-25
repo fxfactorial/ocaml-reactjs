@@ -343,4 +343,8 @@ module Common_components : sig
       attributes to the stylesheet. *)
   val stylesheet : ?custom_opts:'a Js.t -> href:string -> unit -> react_node
 
+  (** Create a ahrefs component
+      {b ahref ~href:"https..." "Some message"} *)
+  val ahref : href:string -> string -> react_node
+
 end
