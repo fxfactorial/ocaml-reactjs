@@ -354,10 +354,10 @@ module DOM = struct
   let make :
     ?elem_spec : 'a javascript_object ->
     ?class_name : string ->
-    tag:tag ->
+    ?tag:tag ->
     tree ->
     Low_level_bindings.react_element Js.t
-    = fun ?elem_spec ?class_name ~tag children -> Js.Unsafe.(Infix.(
+    = fun ?elem_spec ?class_name ?(tag=`div) children -> Js.Unsafe.(Infix.(
         let elem_name = tag |> string_of_tag in
         let args = children |> List.map ~f:(function
             | Elem e -> inject e

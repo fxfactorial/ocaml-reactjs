@@ -335,11 +335,16 @@ sig
     short cut for it with ~class_name instead of object%js val
     className = !*"foo" end. If elem_spec and class_name are
     both provided then class_name will mutate elem_spec with
-    className := class_name *)
+    className := class_name
+
+    If no tag is provided then defaults to making a `div.
+ *)
   val make :
     ?elem_spec:'a javascript_object ->
     ?class_name:string ->
-    tag:tag -> tree -> Low_level_bindings.react_element Js.t
+    ?tag:tag ->
+    tree ->
+    Low_level_bindings.react_element Js.t
 end
 
 (** Helper functions to create commonly needed components *)
