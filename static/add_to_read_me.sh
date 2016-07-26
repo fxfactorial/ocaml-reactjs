@@ -4,6 +4,7 @@ set -e
 
 example_to_readme () {
     local read_me=README.md
+    printf '\n![img](./static/%s.gif)\n' $(basename $(dirname $1)) >> $read_me
     printf '\n# %s\n' $(dirname $1) >> $read_me
     printf '\n```ocaml\n' >> $read_me
     cat $1 >> $read_me

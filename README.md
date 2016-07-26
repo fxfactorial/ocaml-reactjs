@@ -109,6 +109,8 @@ for more example source code, include how to render on the server with
 
 [//]: # "Do not write anything below here, the code examples will be appended"
 
+![img](./static/basic.gif)
+
 # reactjs_based_examples/basic
 
 ```ocaml
@@ -167,6 +169,8 @@ let _ = Reactjs.(
   )
 ```
 
+![img](./static/basic-click-counter.gif)
+
 # reactjs_based_examples/basic-click-counter
 
 ```ocaml
@@ -196,6 +200,8 @@ let () = Reactjs.(
       (get_elem ~id:"container")
   )
 ```
+
+![img](./static/quadratic.gif)
 
 # reactjs_based_examples/quadratic
 
