@@ -17,7 +17,7 @@ $ opam install reactjs
 To get the development version, do:
 
 ```shell
-$ opam pin add -y reactjs https://github.com/fxfactorial/ocaml-reactjs
+$ opam pin add -y reactjs git@github.com:fxfactorial/ocaml-reactjs.git
 ```
 
 The bindings should work on `node` or in the browser, both will assume
