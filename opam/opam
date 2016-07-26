@@ -1,7 +1,7 @@
 # -*- conf -*-
 opam-version: "1.2"
-name: "react_js"
-version: "0.0.1"
+name: "reactjs"
+version: "0.0.2"
 maintainer: "Edgar Aroutiounian <edgar.factorial@gmail.com>"
 authors: [ "Edgar Aroutiounian <edgar.factorial@gmail.com>" ]
 license: "BSD-3-clause"

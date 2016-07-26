@@ -1,7 +1,7 @@
 # -*- conf -*-
 OASISFormat: 0.4
-Name:        react_js
-Version:     0.0.1
+Name:        reactjs
+Version:     0.0.2
 Synopsis:    js_of_ocaml bindings for Reactjs
 Authors:     Edgar Aroutiounian <edgar.factorial@gmail.com>
 Maintainers: Edgar Aroutiounian <edgar.factorial@gmail.com>
