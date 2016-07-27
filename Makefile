@@ -42,7 +42,7 @@ configure:
 .PHONY: readme
 
 # Add dir name here when example is ready
-dirs := basic basic-click-counter quadratic
+dirs := basic basic-click-counter quadratic todomvc
 files := $(foreach dir,$(dirs),$(wildcard reactjs_based_examples/$(dir)/*.ml))
 
 dist_clean:; @rm -f README.md
